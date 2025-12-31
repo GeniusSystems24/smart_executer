@@ -27,7 +27,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^1.2.0
+  smart_executer: ^1.3.0
 ```
 
 Then run:
@@ -598,6 +598,95 @@ SmartErrorCard.fromException(
 | `SmartMaintenanceCard` | Under maintenance |
 | `SmartPermissionDeniedCard` | Permission required |
 | `SmartNotFoundCard` | Resource not found |
+
+### Custom Widgets
+
+Status cards support full widget customization:
+
+```dart
+// Custom title widget
+SmartSuccessCard(
+  titleWidget: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.verified, color: Colors.green),
+      SizedBox(width: 8),
+      Text('Verified!', style: TextStyle(fontWeight: FontWeight.bold)),
+    ],
+  ),
+  message: 'Your account has been verified',
+)
+
+// Custom body widget
+SmartInfoCard(
+  title: 'Update Available',
+  bodyWidget: Column(
+    children: [
+      Text('Version 2.0.0 is now available'),
+      SizedBox(height: 8),
+      Text('• New features\n• Bug fixes'),
+    ],
+  ),
+  action: 'Update Now',
+  onActionPressed: () => update(),
+)
+
+// Custom actions widget
+SmartErrorCard(
+  title: 'Connection Failed',
+  message: 'Unable to connect to server',
+  actionsWidget: Column(
+    children: [
+      FilledButton.icon(
+        onPressed: () => retry(),
+        icon: Icon(Icons.refresh),
+        label: Text('Retry'),
+      ),
+      TextButton(
+        onPressed: () => workOffline(),
+        child: Text('Work Offline'),
+      ),
+    ],
+  ),
+)
+
+// Custom icon widget
+SmartInfoCard(
+  title: 'Premium Feature',
+  iconWidget: Container(
+    padding: EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(colors: [Colors.purple, Colors.blue]),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Icon(Icons.star, color: Colors.white),
+  ),
+  message: 'Upgrade to unlock',
+)
+```
+
+### Close Button
+
+Cards can display a close button:
+
+```dart
+SmartInfoCard(
+  title: 'Notification',
+  message: 'You have a new message',
+  showCloseButton: true,
+  onClose: () => dismiss(),
+  closeButtonColor: Colors.grey,
+)
+
+// From exception with close button
+SmartErrorCard.fromException(
+  exception,
+  showCloseButton: true,
+  onClose: () => dismiss(),
+  action: 'Retry',
+  onActionPressed: () => retry(),
+)
+```
 
 ## Connectivity Checker
 

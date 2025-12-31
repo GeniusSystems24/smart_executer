@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2024-01-01
+
+### Added
+
+- **Status Cards Customization**: Full widget customization support
+  - `titleWidget` - Custom widget for title (overrides `title` text)
+  - `bodyWidget` - Custom widget for body (overrides `message` text)
+  - `actionsWidget` - Custom widget for actions (overrides `action`/`secondaryAction`)
+  - `iconWidget` - Custom widget for icon (overrides `icon`)
+  - `showCloseButton` - Option to show/hide close button
+  - `onClose` - Callback when close button is pressed
+  - `closeButtonColor` - Custom close button color
+
+- **SmartLoadingCard Customization**:
+  - `titleWidget` - Custom title widget
+  - `bodyWidget` - Custom body widget
+  - `indicatorWidget` - Custom loading indicator widget
+  - `showCloseButton` - Close button support
+
+### Changed
+
+- Enhanced example app with custom widget demonstrations
+- Status cards now support both text-based and widget-based content
+
 ## [1.2.0] - 2024-01-01
 
 ### Added
