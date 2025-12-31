@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:smart_executer/smart_executer.dart';
 
+import '../core/app_theme.dart';
+import '../core/widgets.dart';
+
 /// Loading dialogs showcase page.
 class LoadingDialogsPage extends StatelessWidget {
   const LoadingDialogsPage({super.key});
@@ -8,92 +11,156 @@ class LoadingDialogsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Loading Dialogs'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildSection(
-            context,
-            title: 'Standard Loading Dialog',
-            description: 'Shows a circular progress indicator with message',
-            child: ElevatedButton.icon(
-              onPressed: () => _showLoadingDialog(context),
-              icon: const Icon(Icons.hourglass_empty),
-              label: const Text('Show Loading Dialog'),
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          // Header
+          const SliverToBoxAdapter(
+            child: GradientHeader(
+              title: 'Loading Dialogs',
+              subtitle: 'Customizable loading indicators and progress dialogs',
+              icon: Icons.hourglass_empty,
             ),
           ),
 
-          _buildSection(
-            context,
-            title: 'Progress Dialog',
-            description: 'Shows linear progress with percentage',
-            child: ElevatedButton.icon(
-              onPressed: () => _showProgressDialog(context),
-              icon: const Icon(Icons.trending_up),
-              label: const Text('Show Progress Dialog'),
-            ),
-          ),
-
-          _buildSection(
-            context,
-            title: 'Loading Overlay',
-            description: 'Minimal fullscreen overlay',
-            child: ElevatedButton.icon(
-              onPressed: () => _showLoadingOverlay(context),
-              icon: const Icon(Icons.layers),
-              label: const Text('Show Loading Overlay'),
-            ),
-          ),
-
-          _buildSection(
-            context,
-            title: 'Custom Loading',
-            description: 'Loading dialog with custom widget',
-            child: ElevatedButton.icon(
-              onPressed: () => _showCustomLoading(context),
-              icon: const Icon(Icons.brush),
-              label: const Text('Show Custom Loading'),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          Text(
-            'Preview',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+          // Content
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Standard Loading Dialog
+                DemoSection(
+                  title: 'Standard Loading Dialog',
+                  description: 'Circular progress indicator with message',
+                  child: DemoButton(
+                    label: 'Show Loading Dialog',
+                    icon: Icons.hourglass_empty,
+                    onPressed: () => _showLoadingDialog(context),
+                  ),
+                  code: '''showDialog(
+  context: context,
+  barrierDismissible: false,
+  builder: (_) => const SmartLoadingDialog(
+    message: 'Please wait...',
+  ),
+);''',
                 ),
-          ),
-          const SizedBox(height: 16),
 
-          // Inline preview
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(
-              child: SmartLoadingDialog(message: 'Loading preview...'),
-            ),
-          ),
+                // Progress Dialog
+                DemoSection(
+                  title: 'Progress Dialog',
+                  description: 'Linear progress with percentage indicator',
+                  child: DemoButton(
+                    label: 'Show Progress Dialog',
+                    icon: Icons.trending_up,
+                    color: AppColors.success,
+                    onPressed: () => _showProgressDialog(context),
+                  ),
+                  code: '''SmartProgressDialog(
+  progress: 0.65,
+  message: 'Uploading... 65%',
+);''',
+                ),
 
-          const SizedBox(height: 16),
+                // Loading Overlay
+                DemoSection(
+                  title: 'Loading Overlay',
+                  description: 'Minimal fullscreen overlay (tap to dismiss)',
+                  child: DemoButton(
+                    label: 'Show Loading Overlay',
+                    icon: Icons.layers,
+                    color: AppColors.warning,
+                    onPressed: () => _showLoadingOverlay(context),
+                  ),
+                  code: '''showDialog(
+  context: context,
+  barrierDismissible: true,
+  barrierColor: Colors.black54,
+  builder: (_) => const SmartLoadingOverlay(),
+);''',
+                ),
 
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(
-              child: SmartProgressDialog(
-                progress: 0.65,
-                message: 'Uploading file...',
-              ),
+                // Custom Loading
+                DemoSection(
+                  title: 'Custom Loading',
+                  description: 'Create your own custom loading dialog',
+                  child: DemoButton(
+                    label: 'Show Custom Loading',
+                    icon: Icons.brush,
+                    color: AppColors.accent,
+                    onPressed: () => _showCustomLoading(context),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Preview Section
+                const SectionHeader(
+                  title: 'Preview',
+                  subtitle: 'Inline preview of loading components',
+                ),
+
+                // Loading Dialog Preview
+                _buildPreviewCard(
+                  context,
+                  'Loading Dialog',
+                  const SmartLoadingDialog(message: 'Loading preview...'),
+                ),
+                const SizedBox(height: 16),
+
+                // Progress Dialog Preview
+                _buildPreviewCard(
+                  context,
+                  'Progress Dialog',
+                  const SmartProgressDialog(
+                    progress: 0.65,
+                    message: 'Uploading file... 65%',
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Custom Loading Card
+                const SectionHeader(
+                  title: 'Smart Loading Card',
+                  subtitle: 'For inline loading states',
+                ),
+
+                const SmartLoadingCard(
+                  title: 'Loading Data',
+                  message: 'Please wait while we fetch your information',
+                ),
+
+                const SizedBox(height: 12),
+
+                SmartLoadingCard(
+                  titleWidget: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.cloud_download, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Syncing...',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  message: 'Downloading latest updates',
+                  indicatorWidget: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ]),
             ),
           ),
         ],
@@ -101,33 +168,23 @@ class LoadingDialogsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(
-    BuildContext context, {
-    required String title,
-    required String description,
-    required Widget child,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            description,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(width: double.infinity, child: child),
-        ],
+  Widget _buildPreviewCard(BuildContext context, String title, Widget child) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(child: child),
+          ],
+        ),
       ),
     );
   }
@@ -201,26 +258,47 @@ class LoadingDialogsPage extends StatelessWidget {
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  gradient: AppColors.primaryGradient,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.rocket_launch, size: 48, color: Colors.blue),
+                child: const Icon(
+                  Icons.rocket_launch,
+                  size: 40,
+                  color: Colors.white,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               const Text(
                 'Launching...',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              const LinearProgressIndicator(),
+              Text(
+                'Preparing your experience',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  minHeight: 6,
+                  backgroundColor: AppColors.border,
+                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                ),
+              ),
             ],
           ),
         ),

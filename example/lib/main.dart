@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_executer/smart_executer.dart';
 
+import 'core/app_theme.dart';
+import 'core/widgets.dart';
 import 'pages/basic_usage_page.dart';
 import 'pages/exception_handling_page.dart';
 import 'pages/loading_dialogs_page.dart';
@@ -26,74 +28,323 @@ void main() {
     },
   );
 
-  runApp(const MyApp());
+  runApp(const SmartExecuterDemo());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SmartExecuterDemo extends StatelessWidget {
+  const SmartExecuterDemo({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Smart Executer Demo',
+      title: 'Smart Executer',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const MainNavigationPage(),
+      theme: AppTheme.light,
+      home: const HomePage(),
     );
   }
 }
 
-/// Main navigation page with bottom navigation bar.
-class MainNavigationPage extends StatefulWidget {
-  const MainNavigationPage({super.key});
-
-  @override
-  State<MainNavigationPage> createState() => _MainNavigationPageState();
-}
-
-class _MainNavigationPageState extends State<MainNavigationPage> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = const [
-    BasicUsagePage(),
-    StatusCardsPage(),
-    LoadingDialogsPage(),
-    ExceptionHandlingPage(),
-  ];
+/// Home page with feature showcase
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Basic',
+      body: CustomScrollView(
+        slivers: [
+          // Hero Section
+          SliverToBoxAdapter(
+            child: _buildHeroSection(context),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.credit_card_outlined),
-            selectedIcon: Icon(Icons.credit_card),
-            label: 'Cards',
+
+          // Features Section
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SectionHeader(
+                    title: 'Features',
+                    subtitle: 'Explore what Smart Executer can do',
+                  ),
+                  _buildFeaturesList(context),
+                ],
+              ),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.hourglass_empty),
-            selectedIcon: Icon(Icons.hourglass_full),
-            label: 'Loading',
+
+          // Quick Start Section
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            sliver: SliverToBoxAdapter(
+              child: _buildQuickStartSection(),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.bug_report_outlined),
-            selectedIcon: Icon(Icons.bug_report),
-            label: 'Errors',
+
+          // Package Info
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+            sliver: SliverToBoxAdapter(
+              child: _buildPackageInfo(),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeroSection(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: AppColors.primaryGradient,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Logo & Version
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.bolt,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'v1.3.0',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              const Text(
+                'Smart Executer',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Description
+              Text(
+                'A powerful Flutter package for executing async operations with built-in error handling, loading states, and retry mechanisms.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.9),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Chips
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildChip(Icons.security, 'Type-Safe'),
+                  _buildChip(Icons.refresh, 'Auto Retry'),
+                  _buildChip(Icons.error_outline, 'Error Handling'),
+                  _buildChip(Icons.wifi_off, 'Connectivity'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturesList(BuildContext context) {
+    return Column(
+      children: [
+        FeatureCard(
+          icon: Icons.play_circle_outline,
+          iconColor: AppColors.primary,
+          title: 'Basic Usage',
+          description: 'Execute operations with loading dialogs and result handling',
+          onTap: () => _navigateTo(context, const BasicUsagePage()),
+        ),
+        const SizedBox(height: 12),
+        FeatureCard(
+          icon: Icons.credit_card,
+          iconColor: AppColors.success,
+          title: 'Status Cards',
+          description: 'Ready-to-use cards for different UI states',
+          onTap: () => _navigateTo(context, const StatusCardsPage()),
+        ),
+        const SizedBox(height: 12),
+        FeatureCard(
+          icon: Icons.hourglass_empty,
+          iconColor: AppColors.warning,
+          title: 'Loading Dialogs',
+          description: 'Customizable loading indicators and progress dialogs',
+          onTap: () => _navigateTo(context, const LoadingDialogsPage()),
+        ),
+        const SizedBox(height: 12),
+        FeatureCard(
+          icon: Icons.bug_report_outlined,
+          iconColor: AppColors.error,
+          title: 'Exception Handling',
+          description: 'Comprehensive exception handling with metadata',
+          onTap: () => _navigateTo(context, const ExceptionHandlingPage()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickStartSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader(
+          title: 'Quick Start',
+          subtitle: 'Get started in seconds',
+        ),
+        const CodePreview(
+          language: 'dart',
+          code: '''// Execute with loading dialog
+final response = await SmartExecuter.run(
+  request: () => dio.get('/api/data'),
+  context: context,
+);
+
+// Execute with Result pattern
+final result = await SmartExecuter.execute<Response>(
+  () => dio.get('/api/data'),
+);
+
+result.fold(
+  onSuccess: (data) => print('Got: \$data'),
+  onFailure: (e) => print('Error: \${e.message}'),
+);''',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPackageInfo() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.info_outline,
+                    color: AppColors.info,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Package Info',
+                  style: AppTextStyles.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildInfoRow('Package', 'smart_executer'),
+            _buildInfoRow('Version', '1.3.0'),
+            _buildInfoRow('License', 'MIT'),
+            _buildInfoRow('Platform', 'Android, iOS, Web, Desktop'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: AppTextStyles.bodyMedium,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTextStyles.labelLarge,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateTo(BuildContext context, Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
     );
   }
 }

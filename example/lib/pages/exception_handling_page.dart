@@ -2,6 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_executer/smart_executer.dart';
 
+import '../core/app_theme.dart';
+import '../core/widgets.dart';
+
 /// Exception handling showcase page.
 class ExceptionHandlingPage extends StatefulWidget {
   const ExceptionHandlingPage({super.key});
@@ -21,110 +24,103 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Exception Handling'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          if (_lastException != null) ...[
-            _buildExceptionCard(),
-            const SizedBox(height: 24),
-          ],
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          // Header
+          const SliverToBoxAdapter(
+            child: GradientHeader(
+              title: 'Exception Handling',
+              subtitle: 'Comprehensive exception handling with metadata',
+              icon: Icons.bug_report_outlined,
+            ),
+          ),
 
-          Text(
-            'Simulate Errors',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+          // Content
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Exception Display
+                if (_lastException != null) ...[
+                  _buildExceptionCard(),
+                  const SizedBox(height: 24),
+                ],
+
+                // Simulate Errors
+                const SectionHeader(
+                  title: 'Simulate Errors',
+                  subtitle: 'Tap to trigger different exception types',
                 ),
-          ),
-          const SizedBox(height: 16),
 
-          _buildErrorButton(
-            'Connection Error',
-            Icons.wifi_off,
-            Colors.red,
-            _simulateConnectionError,
-          ),
+                _buildErrorGrid(),
 
-          _buildErrorButton(
-            'Server Error (500)',
-            Icons.cloud_off,
-            Colors.orange,
-            _simulateServerError,
-          ),
+                const SizedBox(height: 24),
 
-          _buildErrorButton(
-            'Not Found (404)',
-            Icons.search_off,
-            Colors.grey,
-            _simulateNotFound,
-          ),
-
-          _buildErrorButton(
-            'Connection Timeout',
-            Icons.timer_off,
-            Colors.purple,
-            _simulateTimeout,
-          ),
-
-          _buildErrorButton(
-            'Session Expired (401)',
-            Icons.lock_clock,
-            Colors.amber,
-            _simulateSessionExpired,
-          ),
-
-          const SizedBox(height: 24),
-
-          Text(
-            'Exception Types',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+                // Exception Types
+                const SectionHeader(
+                  title: 'Exception Hierarchy',
+                  subtitle: 'All SmartException types available',
                 ),
-          ),
-          const SizedBox(height: 16),
 
-          _buildExceptionTypeCard(
-            'ConnectionException',
-            'Thrown when there is no internet connection',
-            Icons.wifi_off,
-          ),
-          _buildExceptionTypeCard(
-            'ConnectionTimeoutException',
-            'Thrown when connection takes too long',
-            Icons.timer_off,
-          ),
-          _buildExceptionTypeCard(
-            'SendTimeoutException',
-            'Thrown when sending data takes too long',
-            Icons.upload,
-          ),
-          _buildExceptionTypeCard(
-            'ReceiveTimeoutException',
-            'Thrown when receiving data takes too long',
-            Icons.download,
-          ),
-          _buildExceptionTypeCard(
-            'ResponseException',
-            'Thrown when server returns an error (4xx, 5xx)',
-            Icons.cloud_off,
-          ),
-          _buildExceptionTypeCard(
-            'SessionExpiredException',
-            'Thrown when authentication fails (401)',
-            Icons.lock_clock,
-          ),
-          _buildExceptionTypeCard(
-            'CancelledException',
-            'Thrown when request is cancelled',
-            Icons.cancel,
-          ),
-          _buildExceptionTypeCard(
-            'UnknownException',
-            'Thrown for unhandled errors',
-            Icons.error_outline,
+                _buildExceptionTypesList(),
+
+                const SizedBox(height: 16),
+
+                // Code Example
+                const CodePreview(
+                  language: 'dart',
+                  code: '''// Using pattern matching
+switch (result) {
+  case Success(:final data):
+    handleSuccess(data);
+  case Failure(:final exception):
+    switch (exception) {
+      case ConnectionException():
+        showOfflineUI();
+      case SessionExpiredException():
+        navigateToLogin();
+      case ResponseException(:final statusCode):
+        handleHttpError(statusCode);
+      default:
+        showGenericError();
+    }
+}''',
+                ),
+
+                const SizedBox(height: 24),
+
+                // Metadata Section
+                const SectionHeader(
+                  title: 'Exception Metadata',
+                  subtitle: 'Attach debugging information to exceptions',
+                ),
+
+                const CodePreview(
+                  language: 'dart',
+                  code: '''final exception = ConnectionTimeoutException(
+  'Connection timeout',
+  null,
+  null,
+  ExceptionMetadata(
+    operationName: 'fetchUserData',
+    endpoint: '/api/users/123',
+    requestMethod: 'GET',
+    userId: 'user_456',
+    sessionId: 'session_789',
+    timestamp: DateTime.now(),
+    extra: {'retryCount': 3},
+  ),
+);
+
+// Access metadata
+print(exception.metadata.operationName);
+print(exception.metadata.toMap());''',
+                ),
+
+                const SizedBox(height: 40),
+              ]),
+            ),
           ),
         ],
       ),
@@ -132,62 +128,95 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
   }
 
   Widget _buildExceptionCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade200),
+    return Card(
+      color: AppColors.error.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: AppColors.error.withOpacity(0.2)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.bug_report, color: Colors.red.shade700),
-              const SizedBox(width: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.bug_report, color: AppColors.error, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Last Exception',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: AppColors.error,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => setState(() => _lastException = null),
+                  icon: const Icon(Icons.close, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  color: AppColors.textHint,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildExceptionRow('Type', _lastException.runtimeType.toString()),
+            _buildExceptionRow('Message', _lastException!.message),
+            if (_lastException!.metadata.hasData) ...[
+              const SizedBox(height: 12),
               Text(
-                'Last Exception',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade700,
+                'Metadata',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.error,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _lastException!.metadata.toMap().entries
+                      .map((e) => '${e.key}: ${e.value}')
+                      .join('\n'),
+                  style: AppTextStyles.code.copyWith(fontSize: 12),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Type: ${_lastException.runtimeType}',
-            style: const TextStyle(fontFamily: 'monospace'),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Message: ${_lastException!.message}',
-            style: const TextStyle(fontFamily: 'monospace'),
-          ),
-          if (_lastException!.metadata.hasData) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Metadata:',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.red.shade700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _lastException!.metadata.toMap().entries
-                  .map((e) => '  ${e.key}: ${e.value}')
-                  .join('\n'),
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-            ),
           ],
-          const SizedBox(height: 12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExceptionRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => setState(() => _lastException = null),
-              child: const Text('Clear'),
+            width: 70,
+            child: Text(
+              label,
+              style: AppTextStyles.bodyMedium,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTextStyles.code.copyWith(fontSize: 13),
             ),
           ),
         ],
@@ -195,42 +224,173 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
     );
   }
 
-  Widget _buildErrorButton(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onPressed,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 48),
-        ),
+  Widget _buildErrorGrid() {
+    final errors = [
+      _ErrorItem(
+        'Connection',
+        Icons.wifi_off,
+        AppColors.error,
+        _simulateConnectionError,
       ),
+      _ErrorItem(
+        'Server (500)',
+        Icons.cloud_off,
+        const Color(0xFFF97316),
+        _simulateServerError,
+      ),
+      _ErrorItem(
+        'Not Found',
+        Icons.search_off,
+        AppColors.textSecondary,
+        _simulateNotFound,
+      ),
+      _ErrorItem(
+        'Timeout',
+        Icons.timer_off,
+        AppColors.accent,
+        _simulateTimeout,
+      ),
+      _ErrorItem(
+        'Session (401)',
+        Icons.lock_clock,
+        AppColors.warning,
+        _simulateSessionExpired,
+      ),
+      _ErrorItem(
+        'Cancelled',
+        Icons.cancel_outlined,
+        AppColors.info,
+        _simulateCancelled,
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 2.2,
+      ),
+      itemCount: errors.length,
+      itemBuilder: (context, index) {
+        final error = errors[index];
+        return Card(
+          child: InkWell(
+            onTap: error.onTap,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: error.color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(error.icon, color: error.color, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      error.label,
+                      style: AppTextStyles.labelLarge,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildExceptionTypeCard(String name, String description, IconData icon) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(name, style: const TextStyle(fontFamily: 'monospace')),
-        subtitle: Text(description),
+  Widget _buildExceptionTypesList() {
+    final types = [
+      _ExceptionType(
+        'ConnectionException',
+        'No internet connection',
+        Icons.wifi_off,
       ),
+      _ExceptionType(
+        'ConnectionTimeoutException',
+        'Connection takes too long',
+        Icons.timer_off,
+      ),
+      _ExceptionType(
+        'SendTimeoutException',
+        'Sending data takes too long',
+        Icons.upload,
+      ),
+      _ExceptionType(
+        'ReceiveTimeoutException',
+        'Receiving data takes too long',
+        Icons.download,
+      ),
+      _ExceptionType(
+        'ResponseException',
+        'Server returns error (4xx, 5xx)',
+        Icons.cloud_off,
+      ),
+      _ExceptionType(
+        'SessionExpiredException',
+        'Authentication fails (401)',
+        Icons.lock_clock,
+      ),
+      _ExceptionType(
+        'CancelledException',
+        'Request is cancelled',
+        Icons.cancel,
+      ),
+      _ExceptionType(
+        'UnknownException',
+        'Unhandled errors',
+        Icons.error_outline,
+      ),
+    ];
+
+    return Column(
+      children: types.map((type) {
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(type.icon, size: 20, color: AppColors.textSecondary),
+            ),
+            title: Text(
+              type.name,
+              style: AppTextStyles.code.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            subtitle: Text(
+              type.description,
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 13),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
   void _simulateConnectionError() {
     final exception = const ConnectionException('Network unreachable');
     setState(() => _lastException = exception);
-    _showExceptionCard(exception);
+    _showExceptionBottomSheet(exception);
   }
 
   void _simulateServerError() {
@@ -239,7 +399,7 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
       statusCode: 500,
     );
     setState(() => _lastException = exception);
-    _showExceptionCard(exception);
+    _showExceptionBottomSheet(exception);
   }
 
   void _simulateNotFound() {
@@ -248,7 +408,7 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
       statusCode: 404,
     );
     setState(() => _lastException = exception);
-    _showExceptionCard(exception);
+    _showExceptionBottomSheet(exception);
   }
 
   void _simulateTimeout() {
@@ -264,7 +424,7 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
       ),
     );
     setState(() => _lastException = exception);
-    _showExceptionCard(exception);
+    _showExceptionBottomSheet(exception);
   }
 
   void _simulateSessionExpired() {
@@ -280,15 +440,22 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
       ),
     );
     setState(() => _lastException = exception);
-    _showExceptionCard(exception);
+    _showExceptionBottomSheet(exception);
   }
 
-  void _showExceptionCard(SmartException exception) {
+  void _simulateCancelled() {
+    final exception = const CancelledException('Request was cancelled by user');
+    setState(() => _lastException = exception);
+    _showExceptionBottomSheet(exception);
+  }
+
+  void _showExceptionBottomSheet(SmartException exception) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.only(bottom: 32),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
         child: SmartErrorCard.fromException(
           exception,
           action: 'Dismiss',
@@ -297,4 +464,21 @@ class _ExceptionHandlingPageState extends State<ExceptionHandlingPage> {
       ),
     );
   }
+}
+
+class _ErrorItem {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  _ErrorItem(this.label, this.icon, this.color, this.onTap);
+}
+
+class _ExceptionType {
+  final String name;
+  final String description;
+  final IconData icon;
+
+  _ExceptionType(this.name, this.description, this.icon);
 }

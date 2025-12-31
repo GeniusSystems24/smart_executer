@@ -2,6 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_executer/smart_executer.dart';
 
+import '../core/app_theme.dart';
+import '../core/widgets.dart';
+
 /// Basic usage examples page.
 class BasicUsagePage extends StatefulWidget {
   const BasicUsagePage({super.key});
@@ -15,170 +18,210 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
     baseUrl: 'https://jsonplaceholder.typicode.com',
   ));
 
-  String _result = '';
+  String? _result;
+  bool _isError = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Basic Usage'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildResultCard(),
-            const SizedBox(height: 24.0),
-            _buildSection(
-              title: 'Run Operations',
-              children: [
-                _buildButton(
-                  label: 'Run with Loading Dialog',
-                  icon: Icons.play_arrow,
-                  onPressed: _runWithDialog,
-                ),
-                _buildButton(
-                  label: 'Run in Background',
-                  icon: Icons.cloud_sync,
-                  onPressed: _runInBackground,
-                ),
-              ],
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          // Header
+          const SliverToBoxAdapter(
+            child: GradientHeader(
+              title: 'Basic Usage',
+              subtitle: 'Execute operations with loading dialogs and result handling',
+              icon: Icons.play_circle_outline,
             ),
-            _buildSection(
-              title: 'Result Pattern',
-              children: [
-                _buildButton(
-                  label: 'Execute with Result',
-                  icon: Icons.check_circle,
-                  onPressed: _executeWithResult,
-                ),
-                _buildButton(
-                  label: 'Handle Failure',
-                  icon: Icons.error_outline,
-                  onPressed: _handleFailure,
-                ),
-              ],
-            ),
-            _buildSection(
-              title: 'With Metadata',
-              children: [
-                _buildButton(
-                  label: 'Run with Operation Metadata',
-                  icon: Icons.data_object,
-                  onPressed: _runWithMetadata,
-                ),
-              ],
-            ),
-            _buildSection(
-              title: 'With Callbacks',
-              children: [
-                _buildButton(
-                  label: 'Run with Callbacks',
-                  icon: Icons.call_received,
-                  onPressed: _runWithCallbacks,
-                ),
-              ],
-            ),
-            _buildSection(
-              title: 'Connectivity',
-              children: [
-                _buildButton(
-                  label: 'Check Connection',
-                  icon: Icons.signal_cellular_alt,
-                  onPressed: _checkConnection,
-                ),
-                _buildButton(
-                  label: 'Run with Connection Check',
-                  icon: Icons.network_check,
-                  onPressed: _runWithConnectionCheck,
-                ),
-              ],
-            ),
-            _buildSection(
-              title: 'Snack Bars',
-              children: [
-                _buildButton(
-                  label: 'Show Success Snack Bar',
-                  icon: Icons.check,
-                  color: Colors.green,
-                  onPressed: _showSuccessSnackBar,
-                ),
-                _buildButton(
-                  label: 'Show Error Snack Bar',
-                  icon: Icons.error,
-                  color: Colors.red,
-                  onPressed: _showErrorSnackBar,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
 
-  Widget _buildResultCard() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Result:', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8.0),
-          Text(
-            _result.isEmpty ? 'No result yet' : _result,
-            style: Theme.of(context).textTheme.bodyMedium,
+          // Content
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Result Card
+                if (_result != null) ...[
+                  ResultCard(
+                    content: _result!,
+                    isError: _isError,
+                    onClear: () => setState(() => _result = null),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                // Run Operations
+                DemoSection(
+                  title: 'Run Operations',
+                  description: 'Execute with automatic loading dialog',
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DemoButton(
+                              label: 'With Dialog',
+                              icon: Icons.play_arrow,
+                              onPressed: _runWithDialog,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DemoButton(
+                              label: 'Background',
+                              icon: Icons.cloud_sync,
+                              onPressed: _runInBackground,
+                              isOutlined: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  code: '''await SmartExecuter.run(
+  request: () => dio.get('/posts/1'),
+  context: context,
+);''',
+                ),
+
+                // Result Pattern
+                DemoSection(
+                  title: 'Result Pattern',
+                  description: 'Type-safe success and failure handling',
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DemoButton(
+                          label: 'Execute',
+                          icon: Icons.check_circle,
+                          color: AppColors.success,
+                          onPressed: _executeWithResult,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DemoButton(
+                          label: 'Handle Failure',
+                          icon: Icons.error_outline,
+                          color: AppColors.error,
+                          onPressed: _handleFailure,
+                        ),
+                      ),
+                    ],
+                  ),
+                  code: '''final result = await SmartExecuter.execute<Response>(
+  () => dio.get('/posts/1'),
+);
+
+switch (result) {
+  case Success(:final data):
+    print('Got: \${data.data}');
+  case Failure(:final exception):
+    print('Error: \${exception.message}');
+}''',
+                ),
+
+                // With Metadata
+                DemoSection(
+                  title: 'With Metadata',
+                  description: 'Attach debugging information to operations',
+                  child: DemoButton(
+                    label: 'Run with Metadata',
+                    icon: Icons.data_object,
+                    color: AppColors.accent,
+                    onPressed: _runWithMetadata,
+                  ),
+                  code: '''await SmartExecuter.run(
+  request: () => dio.get('/posts/1'),
+  context: context,
+  options: const ExecuterOptions(
+    operationName: 'fetchPost',
+    metadata: {
+      'userId': 'user_123',
+      'screen': 'home',
+    },
+  ),
+);''',
+                ),
+
+                // Connectivity
+                DemoSection(
+                  title: 'Connectivity',
+                  description: 'Check connection before making requests',
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DemoButton(
+                          label: 'Check',
+                          icon: Icons.signal_cellular_alt,
+                          onPressed: _checkConnection,
+                          isOutlined: true,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DemoButton(
+                          label: 'With Check',
+                          icon: Icons.network_check,
+                          onPressed: _runWithConnectionCheck,
+                        ),
+                      ),
+                    ],
+                  ),
+                  code: '''final hasConnection = await ConnectivityChecker.hasConnection();
+
+await SmartExecuter.run(
+  request: () => dio.get('/posts/1'),
+  context: context,
+  options: const ExecuterOptions(checkConnection: true),
+  onConnectionError: () async {
+    print('No connection');
+  },
+);''',
+                ),
+
+                // Snack Bars
+                DemoSection(
+                  title: 'Snack Bars',
+                  description: 'Show success and error notifications',
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DemoButton(
+                          label: 'Success',
+                          icon: Icons.check,
+                          color: AppColors.success,
+                          onPressed: _showSuccessSnackBar,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DemoButton(
+                          label: 'Error',
+                          icon: Icons.error,
+                          color: AppColors.error,
+                          onPressed: _showErrorSnackBar,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+              ]),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSection({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 12.0),
-        ...children,
-        const SizedBox(height: 16.0),
-      ],
-    );
-  }
-
-  Widget _buildButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback onPressed,
-    Color? color,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: color != null ? Colors.white : null,
-          minimumSize: const Size(double.infinity, 48.0),
-        ),
-      ),
-    );
+  void _setResult(String result, {bool isError = false}) {
+    setState(() {
+      _result = result;
+      _isError = isError;
+    });
   }
 
   Future<void> _runWithDialog() async {
@@ -188,12 +231,12 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
     );
 
     if (result != null) {
-      setState(() => _result = 'Title: ${result.data['title']}');
+      _setResult('Title: ${result.data['title']}');
     }
   }
 
   Future<void> _runInBackground() async {
-    setState(() => _result = 'Loading in background...');
+    _setResult('Loading in background...');
 
     final result = await SmartExecuter.inBackground(
       request: () => _dio.get('/posts/2'),
@@ -201,7 +244,7 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
     );
 
     if (result != null) {
-      setState(() => _result = 'Background result - Title: ${result.data['title']}');
+      _setResult('Background result - Title: ${result.data['title']}');
     }
   }
 
@@ -212,9 +255,9 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
 
     switch (result) {
       case Success(:final data):
-        setState(() => _result = 'Success! Title: ${data.data['title']}');
+        _setResult('Success! Title: ${data.data['title']}');
       case Failure(:final exception):
-        setState(() => _result = 'Failed: ${exception.message}');
+        _setResult('Failed: ${exception.message}', isError: true);
     }
   }
 
@@ -228,7 +271,7 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
       onFailure: (e) => 'Error handled: ${e.message}',
     );
 
-    setState(() => _result = message);
+    _setResult(message, isError: result is Failure);
   }
 
   Future<void> _runWithMetadata() async {
@@ -244,41 +287,19 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
         },
       ),
       onSuccess: (response) async {
-        setState(() {
-          _result = '''
-Success with metadata!
+        _setResult('''Success with metadata!
 Title: ${response.data?['title']}
 
-Metadata attached to operation:
-- operationName: fetchPost
-- userId: user_123
-- screen: home
-''';
-        });
+Metadata attached:
+• operationName: fetchPost
+• userId: user_123
+• screen: home''');
       },
       onError: (exception) async {
-        setState(() {
-          _result = '''
-Error with metadata:
+        _setResult('''Error with metadata:
 ${exception.message}
 
-Metadata: ${exception.metadata.toMap()}
-''';
-        });
-      },
-    );
-  }
-
-  Future<void> _runWithCallbacks() async {
-    await SmartExecuter.run(
-      request: () => _dio.get('/posts/4'),
-      context: context,
-      onSuccess: (response) async {
-        setState(() => _result = 'onSuccess: ${response.data?['title']}');
-        SmartSnackBars.showSuccess(context, 'Request successful!');
-      },
-      onError: (exception) async {
-        setState(() => _result = 'onError: ${exception.message}');
+Metadata: ${exception.metadata.toMap()}''', isError: true);
       },
     );
   }
@@ -288,14 +309,10 @@ Metadata: ${exception.metadata.toMap()}
     final isWifi = await ConnectivityChecker.isConnectedViaWifi();
     final isMobile = await ConnectivityChecker.isConnectedViaMobile();
 
-    setState(() {
-      _result = '''
-Connection Status:
-  Has Connection: $hasConnection
-  WiFi: $isWifi
-  Mobile: $isMobile
-''';
-    });
+    _setResult('''Connection Status:
+• Has Connection: $hasConnection
+• WiFi: $isWifi
+• Mobile: $isMobile''');
   }
 
   Future<void> _runWithConnectionCheck() async {
@@ -304,10 +321,10 @@ Connection Status:
       context: context,
       options: const ExecuterOptions(checkConnection: true),
       onConnectionError: () async {
-        setState(() => _result = 'No connection - request blocked');
+        _setResult('No connection - request blocked', isError: true);
       },
       onSuccess: (response) async {
-        setState(() => _result = 'Connected and got: ${response.data?['title']}');
+        _setResult('Connected and got: ${response.data?['title']}');
       },
     );
   }
