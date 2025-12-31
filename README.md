@@ -17,6 +17,7 @@ A powerful Flutter package for executing async operations with built-in error ha
 - **Connection Checking** - Optional network connectivity verification before requests
 - **Session Management** - Built-in session expiration (401) handling
 - **Stream Support** - First-class support for stream-based operations with progress tracking
+- **Status Cards** - Ready-to-use cards for error, success, warning, info, and empty states
 - **Customizable UI** - Fully customizable dialogs, snack bars, and error messages
 - **Global Configuration** - Configure once, use everywhere
 
@@ -26,7 +27,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^1.1.0
+  smart_executer: ^1.2.0
 ```
 
 Then run:
@@ -470,6 +471,133 @@ SmartSnackBars.show(
   icon: Icons.warning,
 );
 ```
+
+## Status Cards
+
+Ready-to-use cards for displaying different states in your UI.
+
+### Basic Cards
+
+```dart
+// Error card
+SmartErrorCard(
+  title: 'Something went wrong',
+  message: 'Please try again later',
+  action: 'Retry',
+  onActionPressed: () => fetchData(),
+)
+
+// Success card
+SmartSuccessCard(
+  title: 'Success!',
+  message: 'Your order has been placed',
+  action: 'Continue',
+  onActionPressed: () => navigateHome(),
+)
+
+// Warning card
+SmartWarningCard(
+  title: 'Warning',
+  message: 'Your session will expire soon',
+  action: 'Extend Session',
+  onActionPressed: () => extendSession(),
+)
+
+// Info card
+SmartInfoCard(
+  title: 'Did you know?',
+  message: 'Swipe to dismiss notifications',
+  action: 'Got it',
+  onActionPressed: () => dismiss(),
+)
+
+// Empty state card
+SmartEmptyCard(
+  title: 'No items yet',
+  message: 'Add your first item to get started',
+  action: 'Add Item',
+  onActionPressed: () => addItem(),
+)
+
+// Loading card
+SmartLoadingCard(
+  title: 'Loading...',
+  message: 'Please wait while we fetch your data',
+)
+```
+
+### Pre-configured Cards
+
+Specialized cards with pre-configured titles and messages:
+
+```dart
+// Offline card
+SmartOfflineCard(
+  onActionPressed: () => retry(),
+)
+
+// Session expired card
+SmartSessionExpiredCard(
+  onActionPressed: () => navigateToLogin(),
+)
+
+// Timeout card
+SmartTimeoutCard(
+  onActionPressed: () => retry(),
+)
+
+// Server error card
+SmartServerErrorCard(
+  onActionPressed: () => retry(),
+  onSecondaryActionPressed: () => contactSupport(),
+)
+
+// Maintenance card
+SmartMaintenanceCard()
+
+// Permission denied card
+SmartPermissionDeniedCard(
+  permission: 'Camera',
+  onActionPressed: () => requestPermission(),
+  onSecondaryActionPressed: () => openSettings(),
+)
+
+// Not found card
+SmartNotFoundCard(
+  itemName: 'Product',
+  onActionPressed: () => goBack(),
+)
+```
+
+### From Exception
+
+Create error cards directly from exceptions:
+
+```dart
+SmartErrorCard.fromException(
+  exception,
+  action: 'Retry',
+  onActionPressed: () => retry(),
+)
+```
+
+### Available Status Cards
+
+| Card | Description |
+|------|-------------|
+| `SmartErrorCard` | General error state |
+| `SmartSuccessCard` | Success state |
+| `SmartWarningCard` | Warning state |
+| `SmartInfoCard` | Information state |
+| `SmartEmptyCard` | Empty/no data state |
+| `SmartLoadingCard` | Loading state |
+| `SmartOfflineCard` | No internet connection |
+| `SmartSessionExpiredCard` | Session expired |
+| `SmartTimeoutCard` | Request timeout |
+| `SmartServerErrorCard` | Server error |
+| `SmartMaintenanceCard` | Under maintenance |
+| `SmartPermissionDeniedCard` | Permission required |
+| `SmartNotFoundCard` | Resource not found |
 
 ## Connectivity Checker
 

@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-01-01
+
+### Added
+
+- **Status Cards**: Ready-to-use cards for displaying different states in the UI
+  - `SmartErrorCard` - Error state card with `fromException()` factory
+  - `SmartSuccessCard` - Success state card
+  - `SmartWarningCard` - Warning state card
+  - `SmartInfoCard` - Information state card
+  - `SmartEmptyCard` - Empty/no data state card
+  - `SmartLoadingCard` - Loading state card with progress indicator
+
+- **Pre-configured Status Cards**:
+  - `SmartOfflineCard` - No internet connection card
+  - `SmartSessionExpiredCard` - Session expired card
+  - `SmartTimeoutCard` - Request timeout card
+  - `SmartServerErrorCard` - Server error with contact support option
+  - `SmartMaintenanceCard` - Under maintenance card
+  - `SmartPermissionDeniedCard` - Permission required card
+  - `SmartNotFoundCard` - Resource not found (404) card
+
+- **Enhanced Example App**:
+  - Bottom navigation with 4 screens
+  - Basic Usage page with all core features
+  - Status Cards page showcasing all card types
+  - Loading Dialogs page with interactive demos
+  - Exception Handling page with error simulation
+
+### Changed
+
+- Improved example app structure with multiple screens
+- Added metadata demonstration in example
+
 ## [1.1.0] - 2024-01-01
 
 ### Added
