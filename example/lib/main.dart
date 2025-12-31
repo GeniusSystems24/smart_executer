@@ -288,7 +288,7 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
 
   Future<void> _runWithDialog() async {
     final result = await SmartExecuter.run(
-      () => _dio.get('/posts/1'),
+      request: () => _dio.get('/posts/1'),
       context: context,
     );
 
@@ -301,7 +301,7 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
     setState(() => _result = 'Loading in background...');
 
     final result = await SmartExecuter.inBackground(
-      () => _dio.get('/posts/2'),
+      request: () => _dio.get('/posts/2'),
       context: context,
     );
 
@@ -311,7 +311,9 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
   }
 
   Future<void> _executeWithResult() async {
-    final result = await SmartExecuter.execute(() => _dio.get('/posts/3'));
+    final result = await SmartExecuter.execute<Response>(
+      () => _dio.get('/posts/3'),
+    );
 
     switch (result) {
       case Success(:final data):
@@ -322,7 +324,7 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
   }
 
   Future<void> _handleFailure() async {
-    final result = await SmartExecuter.execute(
+    final result = await SmartExecuter.execute<Response>(
       () => _dio.get('/posts/invalid-id'),
     );
 
@@ -336,7 +338,7 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
 
   Future<void> _runWithMetadata() async {
     await SmartExecuter.run(
-      () => _dio.get('/posts/5'),
+      request: () => _dio.get('/posts/5'),
       context: context,
       options: const ExecuterOptions(
         operationName: 'fetchPost',
@@ -350,7 +352,7 @@ class _BasicUsagePageState extends State<BasicUsagePage> {
         setState(() {
           _result = '''
 Success with metadata!
-Title: ${response.data['title']}
+Title: ${response.data?['title']}
 
 Metadata attached to operation:
 - operationName: fetchPost
@@ -374,10 +376,10 @@ Metadata: ${exception.metadata.toMap()}
 
   Future<void> _runWithCallbacks() async {
     await SmartExecuter.run(
-      () => _dio.get('/posts/4'),
+      request: () => _dio.get('/posts/4'),
       context: context,
       onSuccess: (response) async {
-        setState(() => _result = 'onSuccess: ${response.data['title']}');
+        setState(() => _result = 'onSuccess: ${response.data?['title']}');
         SmartSnackBars.showSuccess(context, 'Request successful!');
       },
       onError: (exception) async {
@@ -403,14 +405,14 @@ Connection Status:
 
   Future<void> _runWithConnectionCheck() async {
     await SmartExecuter.run(
-      () => _dio.get('/posts/5'),
+      request: () => _dio.get('/posts/5'),
       context: context,
       options: const ExecuterOptions(checkConnection: true),
       onConnectionError: () async {
         setState(() => _result = 'No connection - request blocked');
       },
       onSuccess: (response) async {
-        setState(() => _result = 'Connected and got: ${response.data['title']}');
+        setState(() => _result = 'Connected and got: ${response.data?['title']}');
       },
     );
   }
