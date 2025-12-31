@@ -56,36 +56,58 @@ typedef ErrorCallback = Future<void> Function(SmartException exception);
 /// }
 /// ```
 ///
-/// ## With Callbacks
+/// ## With Metadata for Debugging
 ///
 /// ```dart
 /// await SmartExecuter.run(
-///   () => apiService.createUser(data),
+///   () => apiService.createOrder(data),
 ///   context: context,
-///   onSuccess: (user) async {
-///     print('Created user: ${user.name}');
-///   },
+///   options: ExecuterOptions(
+///     operationName: 'createOrder',
+///     metadata: {
+///       'userId': currentUser.id,
+///       'orderId': order.id,
+///     },
+///   ),
 ///   onError: (exception) async {
-///     print('Failed: ${exception.message}');
+///     // exception.metadata contains operationName, userId, orderId
+///     logger.error('Failed ${exception.metadata.operationName}',
+///       extra: exception.metadata.toMap());
 ///   },
 /// );
 /// ```
 abstract final class SmartExecuter {
   static final Logger _logger = Logger();
 
+  /// Creates [ExceptionMetadata] from [ExecuterOptions].
+  static ExceptionMetadata _createMetadata(ExecuterOptions options) {
+    return ExceptionMetadata(
+      operationName: options.operationName,
+      timestamp: DateTime.now(),
+      extra: options.metadata,
+    );
+  }
+
   /// Executes an async operation and returns a [Result].
   ///
   /// This method provides a clean way to handle success and failure cases
   /// without using callbacks. It does not show any UI elements.
   ///
+  /// The [operationName] and [metadata] parameters are attached to any
+  /// exceptions that occur, making debugging easier.
+  ///
   /// Example:
   /// ```dart
-  /// final result = await SmartExecuter.execute(() => fetchUser(id));
-  ///
-  /// final userName = result.fold(
-  ///   onSuccess: (user) => user.name,
-  ///   onFailure: (e) => 'Unknown',
+  /// final result = await SmartExecuter.execute(
+  ///   () => fetchUser(id),
+  ///   operationName: 'fetchUser',
+  ///   metadata: {'userId': id},
   /// );
+  ///
+  /// result.onFailure((e) {
+  ///   print('Operation: ${e.metadata.operationName}');
+  ///   print('Details: ${e.metadata.extra}');
+  /// });
   /// ```
   static Future<Result<T>> execute<T>(
     Future<T> Function() request, {
@@ -93,16 +115,30 @@ abstract final class SmartExecuter {
     int? maxRetries,
     Duration? retryDelay,
     CancelToken? cancelToken,
+    String? operationName,
+    Map<String, dynamic>? metadata,
   }) async {
     final config = SmartExecuterConfig.instance;
     final retries = maxRetries ?? config.maxRetries;
     final delay = retryDelay ?? config.retryDelay;
 
+    // Create metadata for exceptions
+    final exceptionMetadata = ExceptionMetadata(
+      operationName: operationName,
+      timestamp: DateTime.now(),
+      extra: metadata,
+    );
+
     // Check connection if required
     if (checkConnection || config.checkConnectionByDefault) {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
-        return const Failure(ConnectionException());
+        return Failure(ConnectionException(
+          'No internet connection',
+          null,
+          null,
+          exceptionMetadata,
+        ));
       }
     }
 
@@ -114,8 +150,8 @@ abstract final class SmartExecuter {
         final result = await request();
         return Success(result);
       } on DioException catch (e, stackTrace) {
-        lastException = ExceptionMapper.fromDioException(e);
-        _logError('DioException', e, stackTrace);
+        lastException = ExceptionMapper.fromDioException(e, exceptionMetadata);
+        _logError('DioException', e, stackTrace, exceptionMetadata);
 
         // Don't retry on these errors
         if (e.type == DioExceptionType.cancel ||
@@ -128,8 +164,8 @@ abstract final class SmartExecuter {
           await Future.delayed(delay * attempts);
         }
       } catch (e, stackTrace) {
-        lastException = ExceptionMapper.fromException(e, stackTrace);
-        _logError('Exception', e, stackTrace);
+        lastException = ExceptionMapper.fromException(e, stackTrace, exceptionMetadata);
+        _logError('Exception', e, stackTrace, exceptionMetadata);
         break; // Don't retry on unknown errors
       }
     }
@@ -145,13 +181,23 @@ abstract final class SmartExecuter {
   /// Shows a loading dialog while the operation is in progress and handles
   /// errors with snack bars. Supports callbacks for various scenarios.
   ///
+  /// Use [options.operationName] and [options.metadata] to attach debugging
+  /// information to any exceptions that occur.
+  ///
   /// Example:
   /// ```dart
   /// final user = await SmartExecuter.run(
   ///   () => apiService.getUser(id),
   ///   context: context,
-  ///   onSuccess: (user) async {
-  ///     Navigator.push(context, UserPage(user: user));
+  ///   options: ExecuterOptions(
+  ///     operationName: 'getUser',
+  ///     metadata: {'userId': id},
+  ///   ),
+  ///   onError: (exception) async {
+  ///     analytics.logError(
+  ///       exception.metadata.operationName ?? 'unknown',
+  ///       exception.metadata.toMap(),
+  ///     );
   ///   },
   /// );
   /// ```
@@ -198,6 +244,9 @@ abstract final class SmartExecuter {
   /// final data = await SmartExecuter.inBackground(
   ///   () => apiService.refreshCache(),
   ///   context: context,
+  ///   options: ExecuterOptions(
+  ///     operationName: 'refreshCache',
+  ///   ),
   /// );
   /// ```
   static Future<T?> inBackground<T extends Object>({
@@ -242,6 +291,10 @@ abstract final class SmartExecuter {
   /// await SmartExecuter.runStream(
   ///   () => uploadService.uploadWithProgress(file),
   ///   context: context,
+  ///   options: ExecuterOptions(
+  ///     operationName: 'uploadFile',
+  ///     metadata: {'fileName': file.name},
+  ///   ),
   ///   listener: (progress) {
   ///     print('Progress: ${progress.percentage}%');
   ///   },
@@ -340,15 +393,22 @@ abstract final class SmartExecuter {
     CancelToken? cancelToken,
   }) async {
     final config = SmartExecuterConfig.instance;
+    final metadata = _createMetadata(options);
 
     // Check connection if required
     final checkConnection = options.checkConnection ?? config.checkConnectionByDefault;
     if (checkConnection) {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
+        final exception = ConnectionException(
+          config.noConnectionMessage,
+          null,
+          null,
+          metadata,
+        );
         await onConnectionError?.call();
         if (context.mounted) {
-          _showError(context, ConnectionException(config.noConnectionMessage));
+          _showError(context, exception);
         }
         return null;
       }
@@ -376,14 +436,14 @@ abstract final class SmartExecuter {
 
       return response;
     } on DioException catch (e, stackTrace) {
-      _logError('DioException', e, stackTrace);
+      _logError('DioException', e, stackTrace, metadata);
 
       // Hide loading dialog
       if (options.showLoadingDialog && context.mounted) {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromDioException(e);
+      final exception = ExceptionMapper.fromDioException(e, metadata);
       await _handleDioError(
         context: context,
         exception: exception,
@@ -397,14 +457,14 @@ abstract final class SmartExecuter {
         onSessionExpired: onSessionExpired,
       );
     } catch (e, stackTrace) {
-      _logError('Exception', e, stackTrace);
+      _logError('Exception', e, stackTrace, metadata);
 
       // Hide loading dialog
       if (options.showLoadingDialog && context.mounted) {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromException(e, stackTrace);
+      final exception = ExceptionMapper.fromException(e, stackTrace, metadata);
       await onError?.call(exception);
       await config.globalErrorHandler?.call(exception);
 
@@ -433,15 +493,22 @@ abstract final class SmartExecuter {
     void Function(T? value)? listener,
   }) async {
     final config = SmartExecuterConfig.instance;
+    final metadata = _createMetadata(options);
 
     // Check connection if required
     final checkConnection = options.checkConnection ?? config.checkConnectionByDefault;
     if (checkConnection) {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
+        final exception = ConnectionException(
+          config.noConnectionMessage,
+          null,
+          null,
+          metadata,
+        );
         await onConnectionError?.call();
         if (context.mounted) {
-          _showError(context, ConnectionException(config.noConnectionMessage));
+          _showError(context, exception);
         }
         return null;
       }
@@ -483,7 +550,7 @@ abstract final class SmartExecuter {
           }
         },
         onError: (error, stackTrace) {
-          _logError('Stream error', error, stackTrace);
+          _logError('Stream error', error, stackTrace, metadata);
           if (!completer.isCompleted) {
             completer.completeError(error, stackTrace);
           }
@@ -509,14 +576,14 @@ abstract final class SmartExecuter {
 
       return response;
     } on DioException catch (e, stackTrace) {
-      _logError('DioException', e, stackTrace);
+      _logError('DioException', e, stackTrace, metadata);
 
       // Hide loading dialog
       if (options.showLoadingDialog && context.mounted) {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromDioException(e);
+      final exception = ExceptionMapper.fromDioException(e, metadata);
       await _handleDioError(
         context: context,
         exception: exception,
@@ -530,14 +597,14 @@ abstract final class SmartExecuter {
         onSessionExpired: onSessionExpired,
       );
     } catch (e, stackTrace) {
-      _logError('Exception', e, stackTrace);
+      _logError('Exception', e, stackTrace, metadata);
 
       // Hide loading dialog
       if (options.showLoadingDialog && context.mounted) {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromException(e, stackTrace);
+      final exception = ExceptionMapper.fromException(e, stackTrace, metadata);
       await onError?.call(exception);
       await config.globalErrorHandler?.call(exception);
 
@@ -659,9 +726,15 @@ abstract final class SmartExecuter {
       );
   }
 
-  static void _logError(String type, Object error, StackTrace stackTrace) {
+  static void _logError(
+    String type,
+    Object error,
+    StackTrace stackTrace,
+    ExceptionMetadata metadata,
+  ) {
     if (SmartExecuterConfig.instance.enableLogging) {
-      _logger.e('$type: $error', stackTrace: stackTrace);
+      final metadataStr = metadata.hasData ? ' | Metadata: $metadata' : '';
+      _logger.e('$type: $error$metadataStr', stackTrace: stackTrace);
     }
   }
 }

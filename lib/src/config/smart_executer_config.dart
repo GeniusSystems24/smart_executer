@@ -168,6 +168,8 @@ final class SmartExecuterConfig {
 ///     showLoadingDialog: true,
 ///     checkConnection: true,
 ///     maxRetries: 3,
+///     operationName: 'fetchUserData',
+///     metadata: {'userId': '123'},
 ///   ),
 /// );
 /// ```
@@ -182,6 +184,8 @@ final class ExecuterOptions {
     this.loadingWidget,
     this.barrierDismissible = false,
     this.barrierColor,
+    this.operationName,
+    this.metadata,
   });
 
   /// Default options with loading dialog shown.
@@ -215,6 +219,27 @@ final class ExecuterOptions {
   /// Color of the barrier behind the loading dialog.
   final Color? barrierColor;
 
+  /// Name of this operation for debugging and logging.
+  ///
+  /// This will be included in any exceptions thrown during this operation.
+  /// Example: 'fetchUser', 'createOrder', 'uploadImage'
+  final String? operationName;
+
+  /// Additional metadata to attach to exceptions.
+  ///
+  /// This data will be included in any exceptions thrown during this operation,
+  /// making it easier to debug and log errors.
+  ///
+  /// Example:
+  /// ```dart
+  /// metadata: {
+  ///   'userId': currentUser.id,
+  ///   'orderId': order.id,
+  ///   'screen': 'checkout',
+  /// }
+  /// ```
+  final Map<String, dynamic>? metadata;
+
   /// Creates a copy of this options with some fields replaced.
   ExecuterOptions copyWith({
     bool? showLoadingDialog,
@@ -225,6 +250,8 @@ final class ExecuterOptions {
     Widget? loadingWidget,
     bool? barrierDismissible,
     Color? barrierColor,
+    String? operationName,
+    Map<String, dynamic>? metadata,
   }) {
     return ExecuterOptions(
       showLoadingDialog: showLoadingDialog ?? this.showLoadingDialog,
@@ -235,6 +262,8 @@ final class ExecuterOptions {
       loadingWidget: loadingWidget ?? this.loadingWidget,
       barrierDismissible: barrierDismissible ?? this.barrierDismissible,
       barrierColor: barrierColor ?? this.barrierColor,
+      operationName: operationName ?? this.operationName,
+      metadata: metadata ?? this.metadata,
     );
   }
 }
