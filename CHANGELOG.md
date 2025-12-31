@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-01-01
+
+### Added
+
+- **Exception Metadata Support**: Attach debugging information to exceptions
+  - New `ExceptionMetadata` class with fields:
+    - `operationName` - Name of the failed operation
+    - `endpoint` - API endpoint (auto-extracted from Dio)
+    - `requestMethod` - HTTP method (auto-extracted from Dio)
+    - `userId` - User identifier for tracking
+    - `sessionId` - Session identifier
+    - `timestamp` - When the error occurred
+    - `extra` - Custom key-value data
+  - All `SmartException` subclasses now include `metadata` field
+  - `withMetadata()` method to attach metadata to existing exceptions
+  - `toMap()` method for easy serialization/logging
+
+- **ExecuterOptions Metadata Fields**:
+  - `operationName` - Name the operation for debugging
+  - `metadata` - Attach custom data to exceptions
+
+- **Auto-extraction from Dio**: Endpoint and HTTP method are automatically extracted from `DioException`
+
+### Changed
+
+- `ExceptionMapper.fromDioException()` now accepts optional metadata
+- `ExceptionMapper.fromException()` now accepts optional metadata
+- Logging now includes metadata when `enableLogging` is true
+
 ## [1.0.0] - 2024-01-01
 
 ### Added

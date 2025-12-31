@@ -12,6 +12,7 @@ A powerful Flutter package for executing async operations with built-in error ha
 - **Loading Dialogs** - Customizable loading dialogs during operations
 - **Error Handling** - Comprehensive error handling with specific callbacks for each error type
 - **Result Pattern** - Type-safe success/failure handling using sealed classes
+- **Exception Metadata** - Attach debugging info to exceptions for better error tracking
 - **Retry Logic** - Automatic retry with configurable attempts and delays
 - **Connection Checking** - Optional network connectivity verification before requests
 - **Session Management** - Built-in session expiration (401) handling
@@ -25,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^1.0.0
+  smart_executer: ^1.1.0
 ```
 
 Then run:
@@ -135,6 +136,63 @@ await SmartExecuter.run(
 );
 ```
 
+### With Exception Metadata (Debugging)
+
+Attach metadata to exceptions for better debugging and error tracking:
+
+```dart
+await SmartExecuter.run(
+  () => apiService.createOrder(orderData),
+  context: context,
+  options: ExecuterOptions(
+    operationName: 'createOrder',
+    metadata: {
+      'userId': currentUser.id,
+      'orderId': order.id,
+      'screen': 'checkout',
+      'cartItems': cart.itemCount,
+    },
+  ),
+  onError: (exception) async {
+    // Access metadata in the exception
+    print('Operation: ${exception.metadata.operationName}');
+    print('Endpoint: ${exception.metadata.endpoint}');
+    print('Method: ${exception.metadata.requestMethod}');
+    print('Timestamp: ${exception.metadata.timestamp}');
+    print('Extra: ${exception.metadata.extra}');
+
+    // Send to analytics/crash reporting
+    analytics.logError(
+      exception.metadata.operationName ?? 'unknown',
+      exception.metadata.toMap(),
+    );
+  },
+);
+```
+
+Using with `execute()`:
+
+```dart
+final result = await SmartExecuter.execute(
+  () => apiService.fetchUser(id),
+  operationName: 'fetchUser',
+  metadata: {'userId': id, 'source': 'profile_page'},
+);
+
+result.onFailure((exception) {
+  // Full debugging context available
+  crashlytics.recordError(
+    exception,
+    reason: exception.metadata.operationName,
+    information: [
+      'endpoint: ${exception.metadata.endpoint}',
+      'method: ${exception.metadata.requestMethod}',
+      ...exception.metadata.toMap().entries.map((e) => '${e.key}: ${e.value}'),
+    ],
+  );
+});
+```
+
 ### With Retry Logic
 
 ```dart
@@ -155,6 +213,10 @@ final data = await SmartExecuter.run(
 await SmartExecuter.runStream(
   () => uploadService.uploadWithProgress(file),
   context: context,
+  options: ExecuterOptions(
+    operationName: 'uploadFile',
+    metadata: {'fileName': file.name, 'fileSize': file.size},
+  ),
   listener: (progress) {
     print('Upload progress: ${progress.percentage}%');
   },
@@ -203,7 +265,12 @@ SmartExecuterConfig.initialize(
 
   // Global error handler
   globalErrorHandler: (exception) async {
-    analytics.logError(exception.message);
+    // Log all errors with metadata
+    logger.error(
+      'Error in ${exception.metadata.operationName}',
+      error: exception,
+      extra: exception.metadata.toMap(),
+    );
   },
 
   // Session expiration handler
@@ -244,12 +311,58 @@ final options = ExecuterOptions(
   barrierDismissible: false,
   barrierColor: Colors.black54,
   loadingWidget: const CircularProgressIndicator(),
+  operationName: 'longRunningOperation',
+  metadata: {'priority': 'high'},
 );
 
 await SmartExecuter.run(
   () => apiService.longRunningOperation(),
   context: context,
   options: options,
+);
+```
+
+## Exception Metadata
+
+All exceptions include metadata for debugging:
+
+### ExceptionMetadata Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `operationName` | `String?` | Name of the operation (e.g., 'fetchUser') |
+| `endpoint` | `String?` | API endpoint (auto-extracted from Dio) |
+| `requestMethod` | `String?` | HTTP method (auto-extracted from Dio) |
+| `userId` | `String?` | User identifier |
+| `sessionId` | `String?` | Session identifier |
+| `timestamp` | `DateTime?` | When the error occurred |
+| `extra` | `Map<String, dynamic>?` | Custom data |
+
+### Using Metadata
+
+```dart
+// Access metadata from exception
+exception.metadata.operationName  // 'createOrder'
+exception.metadata.endpoint       // '/api/orders'
+exception.metadata.requestMethod  // 'POST'
+exception.metadata.timestamp      // 2024-01-01 12:00:00
+exception.metadata.extra          // {'userId': '123', 'orderId': '456'}
+
+// Check if metadata has data
+if (exception.metadata.hasData) {
+  print(exception.metadata);
+}
+
+// Convert to Map for logging/serialization
+final map = exception.metadata.toMap();
+// {operationName: 'createOrder', endpoint: '/api/orders', ...}
+
+// Attach metadata to existing exception
+final enrichedException = exception.withMetadata(
+  ExceptionMetadata(
+    operationName: 'retryOperation',
+    extra: {'attempt': 2},
+  ),
 );
 ```
 
@@ -272,6 +385,9 @@ SmartExecuter provides specific exception types for different error scenarios:
 final result = await SmartExecuter.execute(() => apiService.getData());
 
 result.onFailure((exception) {
+  // Access metadata in any exception type
+  print('Failed: ${exception.metadata.operationName}');
+
   switch (exception) {
     case ConnectionException():
       showOfflineMessage();
@@ -402,6 +518,8 @@ ConnectivityChecker.onConnectivityChanged.listen((results) {
 | `loadingWidget` | `Widget?` | `null` | Custom loading widget |
 | `barrierDismissible` | `bool` | `false` | Can dismiss dialog |
 | `barrierColor` | `Color?` | `null` | Dialog barrier color |
+| `operationName` | `String?` | `null` | Operation name for debugging |
+| `metadata` | `Map<String, dynamic>?` | `null` | Custom metadata for exceptions |
 
 ## Migration from 0.x
 
