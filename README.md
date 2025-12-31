@@ -4,6 +4,9 @@
 [![likes](https://img.shields.io/pub/likes/smart_executer)](https://pub.dev/packages/smart_executer/score)
 [![popularity](https://img.shields.io/pub/popularity/smart_executer)](https://pub.dev/packages/smart_executer/score)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![points](https://img.shields.io/pub/points/smart_executer)](https://pub.dev/packages/smart_executer/score)
+[![Platform](https://img.shields.io/badge/Platform-All-blueviolet?style=for-the-badge)](https://flutter.dev)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-View_Online-success?style=for-the-badge)](https://geniussystems24.github.io/smart_executer)
 
 A powerful Flutter package for executing async operations with built-in error handling, loading dialogs, retry logic, and Result pattern support.
 
