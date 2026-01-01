@@ -15,13 +15,13 @@ dependencies:
   dio: ^5.4.0
   # Genius Systems packages integration
   smart_pagination: ^2.5.0
-  super_dialog: ^0.3.0
-  tooltip_card: ^2.6.1
+  super_dialog: ^0.3.0+2
+  tooltip_card: ^2.6.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

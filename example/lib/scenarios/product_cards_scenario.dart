@@ -137,7 +137,7 @@ class _ProductCardsScenarioState extends State<ProductCardsScenario> {
       ),
       onSuccess: (response) async {
         if (mounted) {
-          _showPurchaseSuccess(product, response.data['orderId']);
+          _showPurchaseSuccess(product, response.data?['orderId'] ?? 0);
         }
       },
       onError: (exception) async {
@@ -152,7 +152,8 @@ class _ProductCardsScenarioState extends State<ProductCardsScenario> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.check_circle, color: AppColors.success, size: 48),
+        icon:
+            const Icon(Icons.check_circle, color: AppColors.success, size: 48),
         title: const Text('Order Placed!'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -378,7 +379,8 @@ class _ProductCard extends StatelessWidget {
                         child: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
                           size: 18,
-                          color: isFavorite ? AppColors.error : AppColors.textHint,
+                          color:
+                              isFavorite ? AppColors.error : AppColors.textHint,
                         ),
                       ),
                     ),
@@ -480,7 +482,8 @@ class _ProductCard extends StatelessWidget {
               children: [
                 _InfoChip(
                   icon: Icons.star,
-                  label: '${product.rating.toStringAsFixed(1)} (${product.reviewCount})',
+                  label:
+                      '${product.rating.toStringAsFixed(1)} (${product.reviewCount})',
                   color: Colors.amber,
                 ),
                 const SizedBox(width: 8),

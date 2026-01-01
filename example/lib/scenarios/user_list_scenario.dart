@@ -60,7 +60,6 @@ class _UserListScenarioState extends State<UserListScenario> {
     _paginationCubit = SmartPaginationCubit<User>(
       request: PaginationRequest(page: 1, pageSize: 10),
       provider: PaginationProvider.future(_fetchUsers),
-      dataAge: const Duration(minutes: 5),
     );
   }
 
@@ -71,7 +70,7 @@ class _UserListScenarioState extends State<UserListScenario> {
   }
 
   /// Fetch users using SmartExecuter for consistent error handling
-  Future<PaginationResponse<User>> _fetchUsers(PaginationRequest request) async {
+  Future<List<User>> _fetchUsers(PaginationRequest request) async {
     final result = await SmartExecuter.execute<Response>(
       () => _dio.get('/users', queryParameters: {
         '_page': request.page,
@@ -81,15 +80,10 @@ class _UserListScenarioState extends State<UserListScenario> {
 
     return result.fold(
       onSuccess: (response) {
-        final users = (response.data as List)
-            .map((json) => User.fromJson(json))
-            .toList();
+        final users =
+            (response.data as List).map((json) => User.fromJson(json)).toList();
 
-        return PaginationResponse<User>(
-          items: users,
-          hasMore: users.length >= request.pageSize,
-          page: request.page,
-        );
+        return users;
       },
       onFailure: (exception) {
         throw exception;
@@ -108,7 +102,7 @@ class _UserListScenarioState extends State<UserListScenario> {
       ),
       onSuccess: (response) async {
         // Remove from list
-        _paginationCubit.removeWhere((u) => u.id == user.id);
+        _paginationCubit.removeWhereEmit((u) => u.id == user.id);
 
         if (mounted) {
           SmartSnackBars.showSuccess(
@@ -138,7 +132,7 @@ class _UserListScenarioState extends State<UserListScenario> {
 
     if (result != null && mounted) {
       final updatedUser = User.fromJson(result.data);
-      _paginationCubit.updateWhere(
+      _paginationCubit.updateWhereEmit(
         (u) => u.id == user.id,
         (u) => updatedUser,
       );
@@ -174,7 +168,7 @@ class _UserListScenarioState extends State<UserListScenario> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => _paginationCubit.refresh(),
+                    onPressed: () => _paginationCubit.refreshPaginatedList(),
                     icon: const Icon(Icons.refresh),
                     tooltip: 'Refresh',
                   ),
@@ -196,7 +190,8 @@ class _UserListScenarioState extends State<UserListScenario> {
                   onRefresh: () => _refreshUser(user),
                 );
               },
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
+
+              separator: const SizedBox(height: 12),
 
               // First page loading
               firstPageLoadingBuilder: (context) => const Center(
@@ -227,7 +222,7 @@ class _UserListScenarioState extends State<UserListScenario> {
               },
 
               // Load more indicator
-              loadMoreBuilder: (context) => const Padding(
+              loadMoreLoadingBuilder: (context) => const Padding(
                 padding: EdgeInsets.all(16),
                 child: Center(
                   child: CircularProgressIndicator(),
@@ -253,7 +248,7 @@ class _UserListScenarioState extends State<UserListScenario> {
               ),
 
               // Empty state
-              emptyBuilder: (context) => const SmartEmptyCard(
+              emptyWidget: const SmartEmptyCard(
                 title: 'No Users Found',
                 message: 'There are no users to display',
                 icon: Icons.person_off,

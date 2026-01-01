@@ -34,7 +34,8 @@ class Task {
       description: json['body'] ?? 'No description',
       completed: json['completed'] ?? false,
       priority: priorities[(json['id'] ?? 1) % 4],
-      createdAt: DateTime.now().subtract(Duration(days: (json['id'] ?? 1) % 30)),
+      createdAt:
+          DateTime.now().subtract(Duration(days: (json['id'] ?? 1) % 30)),
     );
   }
 
@@ -62,7 +63,8 @@ class FullIntegrationScenario extends StatefulWidget {
   const FullIntegrationScenario({super.key});
 
   @override
-  State<FullIntegrationScenario> createState() => _FullIntegrationScenarioState();
+  State<FullIntegrationScenario> createState() =>
+      _FullIntegrationScenarioState();
 }
 
 class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
@@ -95,7 +97,7 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
     super.dispose();
   }
 
-  Future<PaginationResponse<Task>> _fetchTasks(PaginationRequest request) async {
+  Future<List<Task>> _fetchTasks(PaginationRequest request) async {
     final result = await SmartExecuter.execute<Response>(
       () => _dio.get('/todos', queryParameters: {
         '_page': request.page,
@@ -105,20 +107,15 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
 
     return result.fold(
       onSuccess: (response) {
-        final tasks = (response.data as List)
-            .map((json) => Task.fromJson(json))
-            .toList();
+        final tasks =
+            (response.data as List).map((json) => Task.fromJson(json)).toList();
 
         // Update counts
         if (request.page == 1) {
           _updateCounts(tasks);
         }
 
-        return PaginationResponse<Task>(
-          items: tasks,
-          hasMore: tasks.length >= request.pageSize,
-          page: request.page,
-        );
+        return tasks;
       },
       onFailure: (exception) {
         throw exception;
@@ -147,7 +144,7 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
         metadata: {'taskId': task.id, 'newStatus': newStatus},
       ),
       onSuccess: (response) async {
-        _tasksCubit.updateWhere(
+        _tasksCubit.updateWhereEmit(
           (t) => t.id == task.id,
           (t) => t.copyWith(completed: newStatus),
         );
@@ -204,7 +201,8 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
           ),
         ),
       ),
-      animation: completed ? DialogAnimation.bounceIn : DialogAnimation.centerScale,
+      animation:
+          completed ? DialogAnimation.bounceIn : DialogAnimation.centerScale,
       config: const SuperDialogConfig(
         openDuration: Duration(milliseconds: 400),
       ),
@@ -242,7 +240,7 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
         metadata: {'taskId': task.id},
       ),
       onSuccess: (response) async {
-        _tasksCubit.removeWhere((t) => t.id == task.id);
+        _tasksCubit.removeWhereEmit((t) => t.id == task.id);
         if (mounted) {
           SmartSnackBars.showSuccess(context, 'Task deleted successfully');
         }
@@ -287,7 +285,7 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
           ...response.data,
           'id': DateTime.now().millisecondsSinceEpoch,
         });
-        _tasksCubit.addFirst(newTask);
+        _tasksCubit.addOrUpdateEmit(newTask);
 
         if (mounted) {
           SuperDialog.showAnimatedDialog<void>(
@@ -381,7 +379,7 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => _tasksCubit.refresh(),
+                    onPressed: () => _tasksCubit.refreshPaginatedList(),
                     icon: const Icon(Icons.refresh),
                   ),
                 ],
@@ -413,7 +411,7 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
                   onDelete: () => _deleteTask(task),
                 );
               },
-              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              separator: const SizedBox(height: 8),
               firstPageLoadingBuilder: (context) => const Center(
                 child: SmartLoadingCard(
                   title: 'Loading Tasks',
@@ -435,7 +433,7 @@ class _FullIntegrationScenarioState extends State<FullIntegrationScenario> {
                   onActionPressed: retry,
                 );
               },
-              emptyBuilder: (context) => const SmartEmptyCard(
+              emptyWidget: const SmartEmptyCard(
                 title: 'No Tasks',
                 message: 'Create your first task to get started',
                 icon: Icons.task_alt,
@@ -496,7 +494,9 @@ class _TaskCard extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                task.completed ? Icons.check_circle : Icons.radio_button_unchecked,
+                task.completed
+                    ? Icons.check_circle
+                    : Icons.radio_button_unchecked,
                 color: task.completed ? AppColors.success : AppColors.textHint,
               ),
             ),
@@ -680,7 +680,8 @@ class _DeleteConfirmDialog extends StatelessWidget {
                 color: AppColors.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.delete_forever, size: 40, color: AppColors.error),
+              child: const Icon(Icons.delete_forever,
+                  size: 40, color: AppColors.error),
             ),
             const SizedBox(height: 20),
             const Text('Delete Task?', style: AppTextStyles.titleLarge),
@@ -703,7 +704,8 @@ class _DeleteConfirmDialog extends StatelessWidget {
                 Expanded(
                   child: FilledButton(
                     onPressed: onConfirm,
-                    style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                    style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.error),
                     child: const Text('Delete'),
                   ),
                 ),
@@ -834,7 +836,8 @@ class _SuccessDialog extends StatelessWidget {
                 color: AppColors.success.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check, size: 48, color: AppColors.success),
+              child:
+                  const Icon(Icons.check, size: 48, color: AppColors.success),
             ),
             const SizedBox(height: 16),
             Text(message, style: AppTextStyles.titleMedium),
