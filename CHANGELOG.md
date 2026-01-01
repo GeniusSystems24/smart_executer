@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-01-01
+
+### Added
+
+- **Real-World Integration Scenarios**: Example app now includes comprehensive scenarios demonstrating integration with Genius Systems packages:
+  - **User List Scenario**: SmartPagination + SmartExecuter for paginated lists with error handling
+  - **Form Submit Scenario**: SuperDialog + SmartExecuter for form workflows with confirmation dialogs
+  - **Product Cards Scenario**: TooltipCard + SmartExecuter for interactive product cards
+  - **Full Integration Scenario**: Complete task dashboard combining all packages
+
+- **New Dependencies** (example app):
+  - `smart_pagination: ^2.5.0` - Paginated lists with BLoC
+  - `super_dialog: ^0.3.0` - Animated dialogs
+  - `tooltip_card: ^2.6.1` - Interactive tooltips
+
+### Changed
+
+- Enhanced example app with Real-World Scenarios section on home page
+- Added scenarios folder with integration examples
+- Improved documentation with code previews
+
 ## [1.3.0] - 2024-01-01
 
 ### Added

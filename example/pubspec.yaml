@@ -13,6 +13,10 @@ dependencies:
   smart_executer:
     path: ../
   dio: ^5.4.0
+  # Genius Systems packages integration
+  smart_pagination: ^2.5.0
+  super_dialog: ^0.3.0
+  tooltip_card: ^2.6.1
 
 dev_dependencies:
   flutter_test:

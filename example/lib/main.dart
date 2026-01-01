@@ -8,6 +8,11 @@ import 'pages/basic_usage_page.dart';
 import 'pages/exception_handling_page.dart';
 import 'pages/loading_dialogs_page.dart';
 import 'pages/status_cards_page.dart';
+// Real-world scenarios with Genius Systems packages
+import 'scenarios/user_list_scenario.dart';
+import 'scenarios/form_submit_scenario.dart';
+import 'scenarios/product_cards_scenario.dart';
+import 'scenarios/full_integration_scenario.dart';
 
 void main() {
   // Initialize SmartExecuter configuration
@@ -71,6 +76,23 @@ class HomePage extends StatelessWidget {
                     subtitle: 'Explore what Smart Executer can do',
                   ),
                   _buildFeaturesList(context),
+                ],
+              ),
+            ),
+          ),
+
+          // Real-World Scenarios Section
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SectionHeader(
+                    title: 'Real-World Scenarios',
+                    subtitle: 'Integration with Genius Systems packages',
+                  ),
+                  _buildScenariosList(context),
                 ],
               ),
             ),
@@ -244,6 +266,44 @@ class HomePage extends StatelessWidget {
           title: 'Exception Handling',
           description: 'Comprehensive exception handling with metadata',
           onTap: () => _navigateTo(context, const ExceptionHandlingPage()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScenariosList(BuildContext context) {
+    return Column(
+      children: [
+        FeatureCard(
+          icon: Icons.people,
+          iconColor: const Color(0xFF6366F1),
+          title: 'User List',
+          description: 'SmartPagination + SmartExecuter for paginated lists',
+          onTap: () => _navigateTo(context, const UserListScenario()),
+        ),
+        const SizedBox(height: 12),
+        FeatureCard(
+          icon: Icons.edit_document,
+          iconColor: const Color(0xFFEC4899),
+          title: 'Form Submit',
+          description: 'SuperDialog + SmartExecuter for form workflows',
+          onTap: () => _navigateTo(context, const FormSubmitScenario()),
+        ),
+        const SizedBox(height: 12),
+        FeatureCard(
+          icon: Icons.shopping_bag,
+          iconColor: const Color(0xFF14B8A6),
+          title: 'Product Cards',
+          description: 'TooltipCard + SmartExecuter for interactive cards',
+          onTap: () => _navigateTo(context, const ProductCardsScenario()),
+        ),
+        const SizedBox(height: 12),
+        FeatureCard(
+          icon: Icons.dashboard,
+          iconColor: const Color(0xFFF59E0B),
+          title: 'Full Integration',
+          description: 'Complete dashboard with all packages combined',
+          onTap: () => _navigateTo(context, const FullIntegrationScenario()),
         ),
       ],
     );
