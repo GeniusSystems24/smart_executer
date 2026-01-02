@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:smart_executer/smart_executer.dart';
 
 import '../core/app_theme.dart';
-import '../core/widgets.dart';
+import '../core/premium_widgets.dart';
 
-/// Basic usage examples page.
+/// Redesigned Basic Usage page with premium UI
 class BasicUsagePage extends StatefulWidget {
   const BasicUsagePage({super.key});
 
@@ -13,208 +13,26 @@ class BasicUsagePage extends StatefulWidget {
   State<BasicUsagePage> createState() => _BasicUsagePageState();
 }
 
-class _BasicUsagePageState extends State<BasicUsagePage> {
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'https://jsonplaceholder.typicode.com',
-  ));
+class _BasicUsagePageState extends State<BasicUsagePage>
+    with SingleTickerProviderStateMixin {
+  final Dio _dio =
+      Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com'));
 
   String? _result;
   bool _isError = false;
+  bool _isLoading = false;
+  late TabController _tabController;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // Header
-          const SliverToBoxAdapter(
-            child: GradientHeader(
-              title: 'Basic Usage',
-              subtitle: 'Execute operations with loading dialogs and result handling',
-              icon: Icons.play_circle_outline,
-            ),
-          ),
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
 
-          // Content
-          SliverPadding(
-            padding: const EdgeInsets.all(20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Result Card
-                if (_result != null) ...[
-                  ResultCard(
-                    content: _result!,
-                    isError: _isError,
-                    onClear: () => setState(() => _result = null),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-
-                // Run Operations
-                DemoSection(
-                  title: 'Run Operations',
-                  description: 'Execute with automatic loading dialog',
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DemoButton(
-                              label: 'With Dialog',
-                              icon: Icons.play_arrow,
-                              onPressed: _runWithDialog,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: DemoButton(
-                              label: 'Background',
-                              icon: Icons.cloud_sync,
-                              onPressed: _runInBackground,
-                              isOutlined: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  code: '''await SmartExecuter.run(
-  request: () => dio.get('/posts/1'),
-  context: context,
-);''',
-                ),
-
-                // Result Pattern
-                DemoSection(
-                  title: 'Result Pattern',
-                  description: 'Type-safe success and failure handling',
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DemoButton(
-                          label: 'Execute',
-                          icon: Icons.check_circle,
-                          color: AppColors.success,
-                          onPressed: _executeWithResult,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DemoButton(
-                          label: 'Handle Failure',
-                          icon: Icons.error_outline,
-                          color: AppColors.error,
-                          onPressed: _handleFailure,
-                        ),
-                      ),
-                    ],
-                  ),
-                  code: '''final result = await SmartExecuter.execute<Response>(
-  () => dio.get('/posts/1'),
-);
-
-switch (result) {
-  case Success(:final data):
-    print('Got: \${data.data}');
-  case Failure(:final exception):
-    print('Error: \${exception.message}');
-}''',
-                ),
-
-                // With Metadata
-                DemoSection(
-                  title: 'With Metadata',
-                  description: 'Attach debugging information to operations',
-                  child: DemoButton(
-                    label: 'Run with Metadata',
-                    icon: Icons.data_object,
-                    color: AppColors.accent,
-                    onPressed: _runWithMetadata,
-                  ),
-                  code: '''await SmartExecuter.run(
-  request: () => dio.get('/posts/1'),
-  context: context,
-  options: const ExecuterOptions(
-    operationName: 'fetchPost',
-    metadata: {
-      'userId': 'user_123',
-      'screen': 'home',
-    },
-  ),
-);''',
-                ),
-
-                // Connectivity
-                DemoSection(
-                  title: 'Connectivity',
-                  description: 'Check connection before making requests',
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DemoButton(
-                          label: 'Check',
-                          icon: Icons.signal_cellular_alt,
-                          onPressed: _checkConnection,
-                          isOutlined: true,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DemoButton(
-                          label: 'With Check',
-                          icon: Icons.network_check,
-                          onPressed: _runWithConnectionCheck,
-                        ),
-                      ),
-                    ],
-                  ),
-                  code: '''final hasConnection = await ConnectivityChecker.hasConnection();
-
-await SmartExecuter.run(
-  request: () => dio.get('/posts/1'),
-  context: context,
-  options: const ExecuterOptions(checkConnection: true),
-  onConnectionError: () async {
-    print('No connection');
-  },
-);''',
-                ),
-
-                // Snack Bars
-                DemoSection(
-                  title: 'Snack Bars',
-                  description: 'Show success and error notifications',
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DemoButton(
-                          label: 'Success',
-                          icon: Icons.check,
-                          color: AppColors.success,
-                          onPressed: _showSuccessSnackBar,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DemoButton(
-                          label: 'Error',
-                          icon: Icons.error,
-                          color: AppColors.error,
-                          onPressed: _showErrorSnackBar,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _setResult(String result, {bool isError = false}) {
@@ -224,54 +42,380 @@ await SmartExecuter.run(
     });
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverToBoxAdapter(
+            child: PremiumPageHeader(
+              title: 'Basic Usage',
+              subtitle:
+                  'Execute async operations with built-in loading dialogs, error handling, and result patterns',
+              icon: Icons.play_circle_rounded,
+              gradient: AppColors.primaryGradient,
+              actions: [
+                GlassCard(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.api_rounded, color: Colors.white, size: 16),
+                    SizedBox(width: 6),
+                    Text('JSONPlaceholder',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500)),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+          // Tab Bar
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SliverTabBarDelegate(
+              TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: AppColors.textSecondary,
+                indicatorColor: AppColors.primary,
+                indicatorWeight: 3,
+                labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                tabs: const [
+                  Tab(text: 'Run Operations'),
+                  Tab(text: 'Result Pattern'),
+                  Tab(text: 'Connectivity'),
+                  Tab(text: 'Snack Bars'),
+                ],
+              ),
+            ),
+          ),
+        ],
+        body: Column(
+          children: [
+            // Result Card
+            if (_result != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: _buildResultCard(),
+              ),
+            // Tab Content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildRunOperationsTab(),
+                  _buildResultPatternTab(),
+                  _buildConnectivityTab(),
+                  _buildSnackBarsTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [
+          (_isError ? AppColors.error : AppColors.success)
+              .withValues(alpha: 0.1),
+          (_isError ? AppColors.error : AppColors.success)
+              .withValues(alpha: 0.05),
+        ]),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: (_isError ? AppColors.error : AppColors.success)
+                .withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(_isError ? Icons.error_rounded : Icons.check_circle_rounded,
+              color: _isError ? AppColors.error : AppColors.success),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(_result!,
+                style: TextStyle(
+                  color: _isError ? AppColors.error : AppColors.success,
+                  fontWeight: FontWeight.w500,
+                )),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 20),
+            onPressed: () => setState(() => _result = null),
+            color: AppColors.textHint,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRunOperationsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          InteractiveDemoPanel(
+            title: 'Run with Loading Dialog',
+            description: 'Execute an operation with automatic loading dialog',
+            demo: Row(children: [
+              Expanded(
+                  child: GradientButton(
+                label: _isLoading ? 'Loading...' : 'Run Request',
+                icon: Icons.play_arrow_rounded,
+                isLoading: _isLoading,
+                onPressed: _isLoading ? null : _runWithDialog,
+              )),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: GradientButton(
+                label: 'Background',
+                icon: Icons.cloud_sync_rounded,
+                gradient: AppColors.accentGradient,
+                onPressed: _runInBackground,
+              )),
+            ]),
+            code: '''final response = await SmartExecuter.run(
+  request: () => dio.get('/posts/1'),
+  context: context,
+);
+
+if (response != null) {
+  print('Title: \${response.data['title']}');
+}''',
+          ),
+          InteractiveDemoPanel(
+            title: 'With Metadata',
+            description: 'Attach debugging information to operations',
+            demo: GradientButton(
+              label: 'Run with Metadata',
+              icon: Icons.data_object_rounded,
+              gradient: AppColors.coolGradient,
+              onPressed: _runWithMetadata,
+            ),
+            code: '''await SmartExecuter.run(
+  request: () => dio.get('/posts/1'),
+  context: context,
+  options: const ExecuterOptions(
+    operationName: 'fetchPost',
+    metadata: {'userId': 'user_123', 'screen': 'home'},
+  ),
+);''',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultPatternTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          // Info card
+          Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.lightbulb_rounded, color: AppColors.info),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Text(
+                      'The Result pattern provides type-safe handling of success and failure cases using Dart 3 pattern matching.',
+                      style: TextStyle(
+                          color: AppColors.info.withValues(alpha: 0.9),
+                          fontSize: 13))),
+            ]),
+          ),
+          InteractiveDemoPanel(
+            title: 'Execute with Result',
+            description: 'Type-safe success and failure handling',
+            demo: Row(children: [
+              Expanded(
+                  child: GradientButton(
+                label: 'Success',
+                icon: Icons.check_circle_rounded,
+                gradient: LinearGradient(colors: [
+                  AppColors.success,
+                  AppColors.success.withValues(alpha: 0.8)
+                ]),
+                onPressed: _executeWithResult,
+              )),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: GradientButton(
+                label: 'Failure',
+                icon: Icons.error_rounded,
+                gradient: LinearGradient(colors: [
+                  AppColors.error,
+                  AppColors.error.withValues(alpha: 0.8)
+                ]),
+                onPressed: _handleFailure,
+              )),
+            ]),
+            code: '''final result = await SmartExecuter.execute<Response>(
+  () => dio.get('/posts/1'),
+);
+
+switch (result) {
+  case Success(:final data):
+    print('Got: \${data.data}');
+  case Failure(:final exception):
+    print('Error: \${exception.message}');
+}
+
+// Or use fold
+result.fold(
+  onSuccess: (data) => handleSuccess(data),
+  onFailure: (e) => handleError(e),
+);''',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConnectivityTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          InteractiveDemoPanel(
+            title: 'Check Connection',
+            description: 'Check network connectivity before making requests',
+            demo: Row(children: [
+              Expanded(
+                  child: GradientButton(
+                label: 'Check Status',
+                icon: Icons.signal_cellular_alt_rounded,
+                gradient: AppColors.accentGradient,
+                onPressed: _checkConnection,
+              )),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: GradientButton(
+                label: 'With Check',
+                icon: Icons.network_check_rounded,
+                onPressed: _runWithConnectionCheck,
+              )),
+            ]),
+            code:
+                '''final isConnected = await ConnectivityChecker.hasConnection();
+final isWifi = await ConnectivityChecker.isConnectedViaWifi();
+final isMobile = await ConnectivityChecker.isConnectedViaMobile();
+
+await SmartExecuter.run(
+  request: () => dio.get('/posts/1'),
+  context: context,
+  options: const ExecuterOptions(checkConnection: true),
+  onConnectionError: () async {
+    showOfflineMessage();
+  },
+);''',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSnackBarsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          InteractiveDemoPanel(
+            title: 'Success & Error Snackbars',
+            description: 'Show notifications for operation results',
+            demo: Row(children: [
+              Expanded(
+                  child: GradientButton(
+                label: 'Success',
+                icon: Icons.check_rounded,
+                gradient: LinearGradient(colors: [
+                  AppColors.success,
+                  AppColors.success.withValues(alpha: 0.8)
+                ]),
+                onPressed: () => SmartSnackBars.showSuccess(
+                    context, 'Operation completed successfully!'),
+              )),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: GradientButton(
+                label: 'Error',
+                icon: Icons.error_rounded,
+                gradient: LinearGradient(colors: [
+                  AppColors.error,
+                  AppColors.error.withValues(alpha: 0.8)
+                ]),
+                onPressed: () => SmartSnackBars.showError(
+                    context, const ConnectionException('Connection failed')),
+              )),
+            ]),
+            code: '''SmartSnackBars.showSuccess(context, 'Data saved!');
+
+SmartSnackBars.showError(
+  context, 
+  ConnectionException('No internet'),
+);''',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Operations
   Future<void> _runWithDialog() async {
     final result = await SmartExecuter.run(
       request: () => _dio.get('/posts/1'),
       context: context,
     );
-
     if (result != null) {
-      _setResult('Title: ${result.data['title']}');
+      _setResult('✓ Title: ${result.data['title']}');
     }
   }
 
   Future<void> _runInBackground() async {
-    _setResult('Loading in background...');
-
+    _setResult('⏳ Loading in background...');
     final result = await SmartExecuter.inBackground(
       request: () => _dio.get('/posts/2'),
       context: context,
     );
-
     if (result != null) {
-      _setResult('Background result - Title: ${result.data['title']}');
+      _setResult('✓ Background: ${result.data['title']}');
     }
   }
 
   Future<void> _executeWithResult() async {
-    final result = await SmartExecuter.execute<Response>(
-      () => _dio.get('/posts/3'),
-    );
-
+    final result =
+        await SmartExecuter.execute<Response>(() => _dio.get('/posts/3'));
     switch (result) {
       case Success(:final data):
-        _setResult('Success! Title: ${data.data['title']}');
+        _setResult('✓ Success: ${data.data['title']}');
       case Failure(:final exception):
-        _setResult('Failed: ${exception.message}', isError: true);
+        _setResult('✗ Failed: ${exception.message}', isError: true);
     }
   }
 
   Future<void> _handleFailure() async {
-    final result = await SmartExecuter.execute<Response>(
-      () => _dio.get('/posts/invalid-id'),
+    final result =
+        await SmartExecuter.execute<Response>(() => _dio.get('/posts/invalid'));
+    result.fold(
+      onSuccess: (data) => _setResult('Got: ${data.data}'),
+      onFailure: (e) =>
+          _setResult('✗ Error handled: ${e.message}', isError: true),
     );
-
-    final message = result.fold(
-      onSuccess: (data) => 'Got: ${data.data}',
-      onFailure: (e) => 'Error handled: ${e.message}',
-    );
-
-    _setResult(message, isError: result is Failure);
   }
 
   Future<void> _runWithMetadata() async {
@@ -279,28 +423,12 @@ await SmartExecuter.run(
       request: () => _dio.get('/posts/5'),
       context: context,
       options: const ExecuterOptions(
-        operationName: 'fetchPost',
-        metadata: {
-          'userId': 'user_123',
-          'screen': 'home',
-          'action': 'view_post',
-        },
-      ),
-      onSuccess: (response) async {
-        _setResult('''Success with metadata!
-Title: ${response.data?['title']}
-
-Metadata attached:
-• operationName: fetchPost
-• userId: user_123
-• screen: home''');
-      },
-      onError: (exception) async {
-        _setResult('''Error with metadata:
-${exception.message}
-
-Metadata: ${exception.metadata.toMap()}''', isError: true);
-      },
+          operationName: 'fetchPost', metadata: {'userId': 'user_123'}),
+      onSuccess: (r) async =>
+          _setResult('✓ With metadata: ${r.data?['title']}'),
+      onError: (e) async => _setResult(
+          '✗ Error: ${e.message}\nMetadata: ${e.metadata.operationName}',
+          isError: true),
     );
   }
 
@@ -308,11 +436,8 @@ Metadata: ${exception.metadata.toMap()}''', isError: true);
     final hasConnection = await ConnectivityChecker.hasConnection();
     final isWifi = await ConnectivityChecker.isConnectedViaWifi();
     final isMobile = await ConnectivityChecker.isConnectedViaMobile();
-
-    _setResult('''Connection Status:
-• Has Connection: $hasConnection
-• WiFi: $isWifi
-• Mobile: $isMobile''');
+    _setResult(
+        '📶 Connection: $hasConnection\n📡 WiFi: $isWifi\n📱 Mobile: $isMobile');
   }
 
   Future<void> _runWithConnectionCheck() async {
@@ -320,23 +445,28 @@ Metadata: ${exception.metadata.toMap()}''', isError: true);
       request: () => _dio.get('/posts/5'),
       context: context,
       options: const ExecuterOptions(checkConnection: true),
-      onConnectionError: () async {
-        _setResult('No connection - request blocked', isError: true);
-      },
-      onSuccess: (response) async {
-        _setResult('Connected and got: ${response.data?['title']}');
-      },
+      onConnectionError: () async =>
+          _setResult('📴 No connection', isError: true),
+      onSuccess: (r) async => _setResult('✓ Connected: ${r.data?['title']}'),
     );
   }
+}
 
-  void _showSuccessSnackBar() {
-    SmartSnackBars.showSuccess(context, 'Operation completed successfully!');
+class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+  _SliverTabBarDelegate(this.tabBar);
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(color: AppColors.background, child: tabBar);
   }
 
-  void _showErrorSnackBar() {
-    SmartSnackBars.showError(
-      context,
-      const ConnectionException('Sample connection error'),
-    );
-  }
+  @override
+  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) => false;
 }

@@ -147,7 +147,8 @@ print(exception.metadata.toMap());''',
                     color: AppColors.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.bug_report, color: AppColors.error, size: 20),
+                  child:
+                      Icon(Icons.bug_report, color: AppColors.error, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -187,7 +188,9 @@ print(exception.metadata.toMap());''',
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _lastException!.metadata.toMap().entries
+                  _lastException!.metadata
+                      .toMap()
+                      .entries
                       .map((e) => '${e.key}: ${e.value}')
                       .join('\n'),
                   style: AppTextStyles.code.copyWith(fontSize: 12),
@@ -267,8 +270,8 @@ print(exception.metadata.toMap());''',
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
         childAspectRatio: 2.2,

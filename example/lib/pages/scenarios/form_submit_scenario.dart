@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_executer/smart_executer.dart';
 import 'package:super_dialog/super_dialog.dart';
 
-import '../core/app_theme.dart';
-import '../core/widgets.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets.dart';
 
 /// Scenario: Form Submission with Confirmation Dialogs
 ///

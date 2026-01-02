@@ -1,9 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_theme.dart';
 
-/// Feature card widget for home page
-class FeatureCard extends StatelessWidget {
+/// Premium Feature card widget with glassmorphism and hover effects
+class FeatureCard extends StatefulWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
@@ -20,45 +21,111 @@ class FeatureCard extends StatelessWidget {
   });
 
   @override
+  State<FeatureCard> createState() => _FeatureCardState();
+}
+
+class _FeatureCardState extends State<FeatureCard> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: iconColor, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: AppTextStyles.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: AppTextStyles.bodyMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.textHint,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: _isHovered
+                  ? widget.iconColor.withValues(alpha: 0.3)
+                  : AppColors.border.withValues(alpha: 0.5),
+              width: _isHovered ? 2 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _isHovered
+                    ? widget.iconColor.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: 0.04),
+                blurRadius: _isHovered ? 20 : 10,
+                offset: Offset(0, _isHovered ? 8 : 4),
               ),
             ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                // Icon container with gradient background
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        widget.iconColor.withValues(alpha: 0.15),
+                        widget.iconColor.withValues(alpha: 0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: widget.iconColor.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Icon(
+                    widget.icon,
+                    color: widget.iconColor,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        widget.description,
+                        style: AppTextStyles.bodyMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _isHovered
+                        ? widget.iconColor.withValues(alpha: 0.1)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    color: _isHovered ? widget.iconColor : AppColors.textHint,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -66,34 +133,58 @@ class FeatureCard extends StatelessWidget {
   }
 }
 
-/// Section header widget
+/// Section header widget with modern styling
 class SectionHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? action;
+  final Color? accentColor;
 
   const SectionHeader({
     super.key,
     required this.title,
     this.subtitle,
     this.action,
+    this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (accentColor != null) ...[
+            Container(
+              width: 4,
+              height: 40,
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTextStyles.titleLarge),
+                Text(
+                  title,
+                  style: AppTextStyles.titleLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(subtitle!, style: AppTextStyles.bodyMedium),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -105,7 +196,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Code preview card with copy button
+/// Premium Code preview card with syntax highlighting appearance
 class CodePreview extends StatelessWidget {
   final String code;
   final String? language;
@@ -120,54 +211,51 @@ class CodePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(12),
+        gradient: AppColors.darkGradient,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header
+          // Header with window controls
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: Color(0xFF334155),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
               children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEF4444),
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                // Window control dots
+                _buildDot(const Color(0xFFFF5F57)),
                 const SizedBox(width: 8),
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF59E0B),
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                _buildDot(const Color(0xFFFFBD2E)),
                 const SizedBox(width: 8),
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF10B981),
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                _buildDot(const Color(0xFF27CA40)),
                 const Spacer(),
                 if (language != null)
-                  Text(
-                    language!,
-                    style: const TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 12,
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      language!,
+                      style: TextStyle(
+                        color: AppColors.primaryLight,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 const SizedBox(width: 12),
@@ -175,31 +263,51 @@ class CodePreview extends StatelessWidget {
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: code));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Code copied to clipboard'),
-                        duration: Duration(seconds: 2),
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle,
+                                color: Colors.white, size: 20),
+                            const SizedBox(width: 12),
+                            const Text('Code copied to clipboard'),
+                          ],
+                        ),
+                        backgroundColor: AppColors.success,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     );
                   },
-                  child: const Icon(
-                    Icons.copy,
-                    size: 16,
-                    color: Color(0xFF94A3B8),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.copy_rounded,
+                      size: 16,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          // Code
+          // Code content
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Text(
               code,
               style: const TextStyle(
-                fontFamily: 'monospace',
+                fontFamily: 'JetBrains Mono, monospace',
                 fontSize: 13,
                 color: Color(0xFFE2E8F0),
-                height: 1.5,
+                height: 1.6,
               ),
             ),
           ),
@@ -207,15 +315,33 @@ class CodePreview extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildDot(Color color) {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.5),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-/// Demo button with icon
+/// Premium Demo button with icon and gradient option
 class DemoButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
   final Color? color;
   final bool isOutlined;
+  final bool useGradient;
 
   const DemoButton({
     super.key,
@@ -224,18 +350,53 @@ class DemoButton extends StatelessWidget {
     required this.onPressed,
     this.color,
     this.isOutlined = false,
+    this.useGradient = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final buttonColor = color ?? AppColors.primary;
+
     if (isOutlined) {
       return OutlinedButton.icon(
         onPressed: onPressed,
         icon: Icon(icon),
         label: Text(label),
         style: OutlinedButton.styleFrom(
-          foregroundColor: color ?? AppColors.primary,
-          side: BorderSide(color: color ?? AppColors.primary),
+          foregroundColor: buttonColor,
+          side: BorderSide(color: buttonColor, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+
+    if (useGradient) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [buttonColor, buttonColor.withValues(alpha: 0.8)],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: buttonColor.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ElevatedButton.icon(
+          onPressed: onPressed,
+          icon: Icon(icon),
+          label: Text(label),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
         ),
       );
     }
@@ -245,13 +406,17 @@ class DemoButton extends StatelessWidget {
       icon: Icon(icon),
       label: Text(label),
       style: ElevatedButton.styleFrom(
-        backgroundColor: color ?? AppColors.primary,
+        backgroundColor: buttonColor,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     );
   }
 }
 
-/// Info chip widget
+/// Premium Info chip widget
 class InfoChip extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -267,23 +432,29 @@ class InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.15),
+            color.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 8),
           ],
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
               color: color,
             ),
           ),
@@ -293,7 +464,7 @@ class InfoChip extends StatelessWidget {
   }
 }
 
-/// Result display card
+/// Premium Result display card
 class ResultCard extends StatelessWidget {
   final String? title;
   final String content;
@@ -313,28 +484,43 @@ class ResultCard extends StatelessWidget {
     final color = isError ? AppColors.error : AppColors.success;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.08),
+            color.withValues(alpha: 0.02),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                isError ? Icons.error_outline : Icons.check_circle_outline,
-                color: color,
-                size: 20,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isError ? Icons.error_outline : Icons.check_circle_outline,
+                  color: color,
+                  size: 20,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  title ?? (isError ? 'Error' : 'Result'),
+                  title ?? (isError ? 'Error' : 'Success'),
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
                     color: color,
                   ),
                 ),
@@ -342,17 +528,24 @@ class ResultCard extends StatelessWidget {
               if (onClear != null)
                 IconButton(
                   onPressed: onClear,
-                  icon: const Icon(Icons.close, size: 18),
+                  icon: const Icon(Icons.close_rounded, size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   color: AppColors.textHint,
                 ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            content,
-            style: AppTextStyles.code.copyWith(fontSize: 12),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              content,
+              style: AppTextStyles.code.copyWith(fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -360,7 +553,7 @@ class ResultCard extends StatelessWidget {
   }
 }
 
-/// Demo section container
+/// Premium Demo section container
 class DemoSection extends StatelessWidget {
   final String title;
   final String? description;
@@ -377,74 +570,122 @@ class DemoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(title, style: AppTextStyles.titleMedium),
-        if (description != null) ...[
-          const SizedBox(height: 4),
-          Text(description!, style: AppTextStyles.bodyMedium),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: AppTextStyles.titleMedium.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (description != null) ...[
+            const SizedBox(height: 6),
+            Text(description!, style: AppTextStyles.bodyMedium),
+          ],
+          const SizedBox(height: 16),
+          child,
+          if (code != null) ...[
+            const SizedBox(height: 16),
+            CodePreview(code: code!, language: 'dart'),
+          ],
         ],
-        const SizedBox(height: 16),
-        child,
-        if (code != null) ...[
-          const SizedBox(height: 12),
-          CodePreview(code: code!, language: 'dart'),
-        ],
-        const SizedBox(height: 24),
-      ],
+      ),
     );
   }
 }
 
-/// Gradient header for pages
+/// Premium Gradient header for pages with glassmorphism
 class GradientHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final LinearGradient? gradient;
 
   const GradientHeader({
     super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.gradient,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      decoration: BoxDecoration(
+        gradient: gradient ?? AppColors.primaryGradient,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: SafeArea(
         bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Back button row
+              Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded,
+                          color: Colors.white),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: Colors.white, size: 28),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: AppTextStyles.displayMedium.copyWith(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: Colors.white.withOpacity(0.9),
+              const SizedBox(height: 20),
+              // Icon with glassmorphism effect
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 32),
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: AppTextStyles.displayMedium.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                subtitle,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

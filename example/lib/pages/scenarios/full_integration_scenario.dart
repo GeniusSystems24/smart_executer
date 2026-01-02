@@ -5,8 +5,8 @@ import 'package:smart_pagination/pagination.dart';
 import 'package:super_dialog/super_dialog.dart';
 import 'package:tooltip_card/tooltip_card.dart';
 
-import '../core/app_theme.dart';
-import '../core/widgets.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets.dart';
 
 /// Task model for the dashboard
 class Task {

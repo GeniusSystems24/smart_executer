@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_executer/smart_executer.dart';
 import 'package:smart_pagination/pagination.dart';
 
-import '../core/app_theme.dart';
-import '../core/widgets.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets.dart';
 
 /// User model for the list
 class User {
