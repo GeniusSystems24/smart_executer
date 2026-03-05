@@ -109,6 +109,8 @@ abstract final class SmartExecuter {
     Map<String, dynamic>? metadata,
     BuildContext? context,
     ErrorViewType viewType = ErrorViewType.snackBar,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     final config = SmartExecuterConfig.instance;
 
@@ -131,7 +133,9 @@ abstract final class SmartExecuter {
         );
         await config.globalErrorHandler?.call(exception);
         if (context != null && context.mounted) {
-          _showError(context, exception, viewType);
+          _showError(context, exception, viewType,
+              snackBarErrorBuilder: snackBarErrorBuilder,
+              dialogErrorBuilder: dialogErrorBuilder);
         }
         return Failure(exception);
       }
@@ -145,7 +149,9 @@ abstract final class SmartExecuter {
       _logError('DioException', e, stackTrace, exceptionMetadata);
       await config.globalErrorHandler?.call(exception);
       if (context != null && context.mounted) {
-        _showError(context, exception, viewType);
+        _showError(context, exception, viewType,
+            snackBarErrorBuilder: snackBarErrorBuilder,
+            dialogErrorBuilder: dialogErrorBuilder);
       }
       return Failure(exception);
     } catch (e, stackTrace) {
@@ -154,7 +160,9 @@ abstract final class SmartExecuter {
       _logError('Exception', e, stackTrace, exceptionMetadata);
       await config.globalErrorHandler?.call(exception);
       if (context != null && context.mounted) {
-        _showError(context, exception, viewType);
+        _showError(context, exception, viewType,
+            snackBarErrorBuilder: snackBarErrorBuilder,
+            dialogErrorBuilder: dialogErrorBuilder);
       }
       return Failure(exception);
     }
@@ -192,6 +200,8 @@ abstract final class SmartExecuter {
     VoidAsyncCallback? onSessionExpired,
     ExecuterOptions options = ExecuterOptions.withDialog,
     CancelToken? cancelToken,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     return _executeWithUI<T>(
       request: request,
@@ -208,6 +218,8 @@ abstract final class SmartExecuter {
       onSessionExpired: onSessionExpired,
       options: options,
       cancelToken: cancelToken,
+      snackBarErrorBuilder: snackBarErrorBuilder,
+      dialogErrorBuilder: dialogErrorBuilder,
     );
   }
 
@@ -239,6 +251,8 @@ abstract final class SmartExecuter {
     VoidAsyncCallback? onSessionExpired,
     ExecuterOptions options = ExecuterOptions.background,
     CancelToken? cancelToken,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     return _executeWithUI<T>(
       request: request,
@@ -255,6 +269,8 @@ abstract final class SmartExecuter {
       onSessionExpired: onSessionExpired,
       options: options.copyWith(showLoadingDialog: false),
       cancelToken: cancelToken,
+      snackBarErrorBuilder: snackBarErrorBuilder,
+      dialogErrorBuilder: dialogErrorBuilder,
     );
   }
 
@@ -290,6 +306,8 @@ abstract final class SmartExecuter {
     ExecuterOptions options = ExecuterOptions.withDialog,
     Widget Function(BuildContext context, T value)? waitingBuilder,
     void Function(T? value)? listener,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
@@ -307,6 +325,8 @@ abstract final class SmartExecuter {
       options: options,
       waitingBuilder: waitingBuilder,
       listener: listener,
+      snackBarErrorBuilder: snackBarErrorBuilder,
+      dialogErrorBuilder: dialogErrorBuilder,
     );
   }
 
@@ -328,6 +348,8 @@ abstract final class SmartExecuter {
     VoidAsyncCallback? onSessionExpired,
     ExecuterOptions options = ExecuterOptions.background,
     void Function(T? value)? listener,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
@@ -344,6 +366,8 @@ abstract final class SmartExecuter {
       onSessionExpired: onSessionExpired,
       options: options.copyWith(showLoadingDialog: false),
       listener: listener,
+      snackBarErrorBuilder: snackBarErrorBuilder,
+      dialogErrorBuilder: dialogErrorBuilder,
     );
   }
 
@@ -364,6 +388,8 @@ abstract final class SmartExecuter {
     VoidAsyncCallback? onSessionExpired,
     required ExecuterOptions options,
     CancelToken? cancelToken,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     final config = SmartExecuterConfig.instance;
     final metadata = _createMetadata(options);
@@ -382,7 +408,9 @@ abstract final class SmartExecuter {
         );
         await onConnectionError?.call();
         if (context.mounted) {
-          _showError(context, exception, viewType);
+          _showError(context, exception, viewType,
+              snackBarErrorBuilder: snackBarErrorBuilder,
+              dialogErrorBuilder: dialogErrorBuilder);
         }
         return null;
       }
@@ -430,6 +458,8 @@ abstract final class SmartExecuter {
         onResponseError: onResponseError,
         onError: onError,
         onSessionExpired: onSessionExpired,
+        snackBarErrorBuilder: snackBarErrorBuilder,
+        dialogErrorBuilder: dialogErrorBuilder,
       );
     } catch (e, stackTrace) {
       _logError('Exception', e, stackTrace, metadata);
@@ -444,7 +474,9 @@ abstract final class SmartExecuter {
       await config.globalErrorHandler?.call(exception);
 
       if (context.mounted) {
-        _showError(context, exception, viewType);
+        _showError(context, exception, viewType,
+            snackBarErrorBuilder: snackBarErrorBuilder,
+            dialogErrorBuilder: dialogErrorBuilder);
       }
     }
 
@@ -467,6 +499,8 @@ abstract final class SmartExecuter {
     required ExecuterOptions options,
     Widget Function(BuildContext context, T value)? waitingBuilder,
     void Function(T? value)? listener,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     final config = SmartExecuterConfig.instance;
     final metadata = _createMetadata(options);
@@ -485,7 +519,9 @@ abstract final class SmartExecuter {
         );
         await onConnectionError?.call();
         if (context.mounted) {
-          _showError(context, exception, viewType);
+          _showError(context, exception, viewType,
+              snackBarErrorBuilder: snackBarErrorBuilder,
+              dialogErrorBuilder: dialogErrorBuilder);
         }
         return null;
       }
@@ -573,6 +609,8 @@ abstract final class SmartExecuter {
         onResponseError: onResponseError,
         onError: onError,
         onSessionExpired: onSessionExpired,
+        snackBarErrorBuilder: snackBarErrorBuilder,
+        dialogErrorBuilder: dialogErrorBuilder,
       );
     } catch (e, stackTrace) {
       _logError('Exception', e, stackTrace, metadata);
@@ -587,7 +625,9 @@ abstract final class SmartExecuter {
       await config.globalErrorHandler?.call(exception);
 
       if (context.mounted) {
-        _showError(context, exception, viewType);
+        _showError(context, exception, viewType,
+            snackBarErrorBuilder: snackBarErrorBuilder,
+            dialogErrorBuilder: dialogErrorBuilder);
       }
     } finally {
       await subscription?.cancel();
@@ -609,6 +649,8 @@ abstract final class SmartExecuter {
     VoidAsyncCallback? onResponseError,
     ErrorCallback? onError,
     VoidAsyncCallback? onSessionExpired,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     final config = SmartExecuterConfig.instance;
 
@@ -638,7 +680,9 @@ abstract final class SmartExecuter {
 
     // Show error
     if (context.mounted) {
-      _showError(context, exception, viewType);
+      _showError(context, exception, viewType,
+          snackBarErrorBuilder: snackBarErrorBuilder,
+          dialogErrorBuilder: dialogErrorBuilder);
     }
   }
 
@@ -698,22 +742,25 @@ abstract final class SmartExecuter {
   static void _showError(
     BuildContext context,
     SmartException exception,
-    ErrorViewType viewType,
-  ) {
+    ErrorViewType viewType, {
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
+  }) {
     final config = SmartExecuterConfig.instance;
 
     switch (viewType) {
       case ErrorViewType.snackBar:
-        final snackBar = config.snackBarErrorBuilder?.build(context, exception)
+        final builder = snackBarErrorBuilder ?? config.snackBarErrorBuilder;
+        final snackBar = builder?.build(context, exception)
             ?? SmartErrorSnackBar(exception: exception);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(snackBar);
 
       case ErrorViewType.dialog:
-        final dialogContent =
-            config.dialogErrorBuilder?.build(context, exception)
-                ?? SmartErrorDialog(exception: exception);
+        final builder = dialogErrorBuilder ?? config.dialogErrorBuilder;
+        final dialogContent = builder?.build(context, exception)
+            ?? SmartErrorDialog(exception: exception);
         showDialog<void>(
           context: context,
           builder: (_) => dialogContent,

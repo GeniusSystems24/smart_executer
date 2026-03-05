@@ -31,7 +31,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^2.0.1
+  smart_executer: ^2.1.0
 ```
 
 Then run:
@@ -249,6 +249,51 @@ SmartExecuterConfig.initialize(
   ),
 );
 ```
+
+### Per-Operation Error Builders
+
+Override global error builders for a single operation:
+
+```dart
+// Use a custom snackbar builder just for this operation
+final result = await SmartExecuter.execute(
+  () => apiService.deleteAccount(),
+  context: context,
+  viewType: ErrorViewType.snackBar,
+  snackBarErrorBuilder: SnackBarErrorBuilder(
+    baseBuilder: (context, exception) => SnackBar(
+      content: Text('Delete failed: ${exception.message}'),
+      backgroundColor: Colors.red,
+      action: SnackBarAction(label: 'RETRY', onPressed: () {}),
+    ),
+  ),
+);
+
+// Use a custom dialog builder just for this operation
+await SmartExecuter.run(
+  request: () => apiService.processPayment(amount),
+  context: context,
+  viewType: ErrorViewType.dialog,
+  dialogErrorBuilder: DialogErrorBuilder(
+    baseBuilder: (context, exception) => AlertDialog(
+      title: const Text('Payment Failed'),
+      content: Text(exception.message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Try Again'),
+        ),
+      ],
+    ),
+  ),
+);
+```
+
+Resolution order: **per-operation builder → global config builder → package default**.
 
 ### Stream Operations with Progress
 

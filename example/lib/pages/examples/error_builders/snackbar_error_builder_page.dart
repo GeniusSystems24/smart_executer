@@ -309,11 +309,76 @@ class _SnackBarErrorBuilderPageState extends State<SnackBarErrorBuilderPage> {
           ),
           const SizedBox(height: 24),
 
+          // Per-Operation Builder Section
+          _buildPerOperationSection(),
+          const SizedBox(height: 24),
+
           // Code Preview
           _buildCodePreview(),
           const SizedBox(height: 24),
         ],
       ),
+    );
+  }
+
+  /// Demonstrates per-operation SnackBar builder override.
+  Future<void> _triggerPerOperationError() async {
+    if (!mounted) return;
+    await SmartExecuter.execute(
+      () => Future.delayed(
+        const Duration(milliseconds: 300),
+        () => throw const ConnectionException('Per-operation custom error'),
+      ),
+      context: context,
+      viewType: ErrorViewType.snackBar,
+      snackBarErrorBuilder: SnackBarErrorBuilder(
+        baseBuilder: (context, exception) => SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Per-Operation: ${exception.message}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF00897B),
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPerOperationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Per-Operation Builder',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Override builders for a single operation without changing global config.',
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+        ),
+        const SizedBox(height: 12),
+        _ErrorTriggerTile(
+          title: 'Per-Operation Override',
+          subtitle: 'Uses inline snackBarErrorBuilder',
+          icon: Icons.star_rounded,
+          color: const Color(0xFF00897B),
+          onTap: _triggerPerOperationError,
+        ),
+      ],
     );
   }
 

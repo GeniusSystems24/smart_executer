@@ -339,11 +339,87 @@ class _DialogErrorBuilderPageState extends State<DialogErrorBuilderPage> {
           ),
           const SizedBox(height: 24),
 
+          // Per-Operation Builder Section
+          _buildPerOperationSection(),
+          const SizedBox(height: 24),
+
           // Code Preview
           _buildCodePreview(),
           const SizedBox(height: 24),
         ],
       ),
+    );
+  }
+
+  /// Demonstrates per-operation Dialog builder override.
+  Future<void> _triggerPerOperationError() async {
+    if (!mounted) return;
+    await SmartExecuter.execute(
+      () => Future.delayed(
+        const Duration(milliseconds: 300),
+        () => throw const ConnectionException('Per-operation custom error'),
+      ),
+      context: context,
+      viewType: ErrorViewType.dialog,
+      dialogErrorBuilder: DialogErrorBuilder(
+        baseBuilder: (context, exception) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          icon: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00897B).withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.star_rounded,
+                color: Color(0xFF00897B), size: 40),
+          ),
+          title: const Text(
+            'Per-Operation Override',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            exception.message,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF00897B)),
+              child: const Text('Got it'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPerOperationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Per-Operation Builder',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Override builders for a single operation without changing global config.',
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+        ),
+        const SizedBox(height: 12),
+        _ErrorTriggerTile(
+          title: 'Per-Operation Override',
+          subtitle: 'Uses inline dialogErrorBuilder',
+          icon: Icons.star_rounded,
+          color: const Color(0xFF00897B),
+          onTap: _triggerPerOperationError,
+        ),
+      ],
     );
   }
 

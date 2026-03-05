@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-03-05
+
+### Added
+
+- **Per-Operation Error Builders**: Override global error builders on a per-call basis
+  - Added optional `snackBarErrorBuilder` parameter to `execute()`, `run()`, `inBackground()`, `runStream()`, `inBackgroundStream()`
+  - Added optional `dialogErrorBuilder` parameter to `execute()`, `run()`, `inBackground()`, `runStream()`, `inBackgroundStream()`
+  - Per-operation builders take priority over global config: operation builder → global config → package default
+  - Useful for operations that need unique error presentation without changing global configuration
+
+- **SmartExceptionType enhanced enum**: Added `color` and `icon` fields to `SmartExceptionType`
+  - Each exception type now carries its own `Color` and `IconData`
+  - Simplifies building custom error UIs: `exception.exceptionType.color`, `exception.exceptionType.icon`
+
+- **Example Pages**: New interactive example pages for error builders
+  - SnackBar Error Builder page with per-type trigger demos
+  - Dialog Error Builder page with per-type trigger demos
+  - Per-operation builder override demonstration
+  - Toggle between default and custom builders
+  - Configuration code previews
+
 ## [2.0.0] - 2025-03-05
 
 ### Added
