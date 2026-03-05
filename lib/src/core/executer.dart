@@ -10,10 +10,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
+import 'package:smart_executer/src/config/error_builders.dart';
 import 'package:smart_executer/src/config/smart_executer_config.dart';
 import 'package:smart_executer/src/core/exceptions.dart';
 import 'package:smart_executer/src/core/result.dart';
 import 'package:smart_executer/src/utils/connectivity_checker.dart';
+import 'package:smart_executer/src/widgets/error_dialog.dart';
 import 'package:smart_executer/src/widgets/error_snack_bar.dart';
 import 'package:smart_executer/src/widgets/loading_dialog.dart';
 
@@ -23,20 +25,20 @@ typedef SuccessCallback<T> = Future<void> Function(T result);
 typedef ErrorCallback = Future<void> Function(SmartException exception);
 
 /// A powerful utility class for executing async operations with built-in
-/// error handling, loading dialogs, retry logic, and more.
+/// error handling, loading dialogs, and more.
 ///
 /// ## Basic Usage
 ///
 /// ```dart
 /// // Execute with loading dialog
 /// final user = await SmartExecuter.run(
-///   () => apiService.getUser(id),
+///   request: () => apiService.getUser(id),
 ///   context: context,
 /// );
 ///
 /// // Execute in background (no dialog)
 /// final data = await SmartExecuter.inBackground(
-///   () => apiService.fetchData(),
+///   request: () => apiService.fetchData(),
 ///   context: context,
 /// );
 /// ```
@@ -56,24 +58,14 @@ typedef ErrorCallback = Future<void> Function(SmartException exception);
 /// }
 /// ```
 ///
-/// ## With Metadata for Debugging
+/// ## Error Display Types
 ///
 /// ```dart
-/// await SmartExecuter.run(
-///   () => apiService.createOrder(data),
+/// // Show errors as a dialog instead of snackbar
+/// final user = await SmartExecuter.run(
+///   request: () => apiService.getUser(id),
 ///   context: context,
-///   options: ExecuterOptions(
-///     operationName: 'createOrder',
-///     metadata: {
-///       'userId': currentUser.id,
-///       'orderId': order.id,
-///     },
-///   ),
-///   onError: (exception) async {
-///     // exception.metadata contains operationName, userId, orderId
-///     logger.error('Failed ${exception.metadata.operationName}',
-///       extra: exception.metadata.toMap());
-///   },
+///   viewType: ErrorViewType.dialog,
 /// );
 /// ```
 abstract final class SmartExecuter {
@@ -91,10 +83,10 @@ abstract final class SmartExecuter {
   /// Executes an async operation and returns a [Result].
   ///
   /// This method provides a clean way to handle success and failure cases
-  /// without using callbacks. It does not show any UI elements.
+  /// without using callbacks.
   ///
-  /// The [operationName] and [metadata] parameters are attached to any
-  /// exceptions that occur, making debugging easier.
+  /// If [context] is provided and mounted, errors will also be displayed
+  /// visually using the specified [viewType] (defaults to [ErrorViewType.snackBar]).
   ///
   /// Example:
   /// ```dart
@@ -112,15 +104,13 @@ abstract final class SmartExecuter {
   static Future<Result<T>> execute<T>(
     Future<T> Function() request, {
     bool checkConnection = false,
-    int? maxRetries,
-    Duration? retryDelay,
     CancelToken? cancelToken,
     String? operationName,
     Map<String, dynamic>? metadata,
+    BuildContext? context,
+    ErrorViewType viewType = ErrorViewType.snackBar,
   }) async {
     final config = SmartExecuterConfig.instance;
-    final retries = maxRetries ?? config.maxRetries;
-    final delay = retryDelay ?? config.retryDelay;
 
     // Create metadata for exceptions
     final exceptionMetadata = ExceptionMetadata(
@@ -133,77 +123,64 @@ abstract final class SmartExecuter {
     if (checkConnection || config.checkConnectionByDefault) {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
-        return Failure(ConnectionException(
+        final exception = ConnectionException(
           'No internet connection',
           null,
           null,
           exceptionMetadata,
-        ));
+        );
+        await config.globalErrorHandler?.call(exception);
+        if (context != null && context.mounted) {
+          _showError(context, exception, viewType);
+        }
+        return Failure(exception);
       }
     }
 
-    int attempts = 0;
-    SmartException? lastException;
-
-    while (attempts <= retries) {
-      try {
-        final result = await request();
-        return Success(result);
-      } on DioException catch (e, stackTrace) {
-        lastException = ExceptionMapper.fromDioException(e, exceptionMetadata);
-        _logError('DioException', e, stackTrace, exceptionMetadata);
-
-        // Don't retry on these errors
-        if (e.type == DioExceptionType.cancel ||
-            e.type == DioExceptionType.badResponse) {
-          break;
-        }
-
-        attempts++;
-        if (attempts <= retries) {
-          await Future.delayed(delay * attempts);
-        }
-      } catch (e, stackTrace) {
-        lastException = ExceptionMapper.fromException(e, stackTrace, exceptionMetadata);
-        _logError('Exception', e, stackTrace, exceptionMetadata);
-        break; // Don't retry on unknown errors
+    try {
+      final result = await request();
+      return Success(result);
+    } on DioException catch (e, stackTrace) {
+      final exception = ExceptionMapper.fromDioException(e, exceptionMetadata);
+      _logError('DioException', e, stackTrace, exceptionMetadata);
+      await config.globalErrorHandler?.call(exception);
+      if (context != null && context.mounted) {
+        _showError(context, exception, viewType);
       }
+      return Failure(exception);
+    } catch (e, stackTrace) {
+      final exception =
+          ExceptionMapper.fromException(e, stackTrace, exceptionMetadata);
+      _logError('Exception', e, stackTrace, exceptionMetadata);
+      await config.globalErrorHandler?.call(exception);
+      if (context != null && context.mounted) {
+        _showError(context, exception, viewType);
+      }
+      return Failure(exception);
     }
-
-    // Call global error handler if configured
-    await config.globalErrorHandler?.call(lastException!);
-
-    return Failure(lastException!);
   }
 
   /// Executes an async operation with a loading dialog.
   ///
   /// Shows a loading dialog while the operation is in progress and handles
-  /// errors with snack bars. Supports callbacks for various scenarios.
-  ///
-  /// Use [options.operationName] and [options.metadata] to attach debugging
-  /// information to any exceptions that occur.
+  /// errors with the specified [viewType] (defaults to [ErrorViewType.snackBar]).
   ///
   /// Example:
   /// ```dart
   /// final user = await SmartExecuter.run(
-  ///   () => apiService.getUser(id),
+  ///   request: () => apiService.getUser(id),
   ///   context: context,
+  ///   viewType: ErrorViewType.dialog,
   ///   options: ExecuterOptions(
   ///     operationName: 'getUser',
   ///     metadata: {'userId': id},
   ///   ),
-  ///   onError: (exception) async {
-  ///     analytics.logError(
-  ///       exception.metadata.operationName ?? 'unknown',
-  ///       exception.metadata.toMap(),
-  ///     );
-  ///   },
   /// );
   /// ```
   static Future<T?> run<T extends Object>({
     required Future<T?> Function() request,
     required BuildContext context,
+    ErrorViewType viewType = ErrorViewType.snackBar,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -219,6 +196,7 @@ abstract final class SmartExecuter {
     return _executeWithUI<T>(
       request: request,
       context: context,
+      viewType: viewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
@@ -236,22 +214,20 @@ abstract final class SmartExecuter {
   /// Executes an async operation in the background without UI.
   ///
   /// Similar to [run] but doesn't show a loading dialog. Errors are still
-  /// displayed via snack bars unless suppressed.
+  /// displayed via the specified [viewType] unless suppressed.
   ///
   /// Example:
   /// ```dart
-  /// // Silently refresh data
   /// final data = await SmartExecuter.inBackground(
-  ///   () => apiService.refreshCache(),
+  ///   request: () => apiService.refreshCache(),
   ///   context: context,
-  ///   options: ExecuterOptions(
-  ///     operationName: 'refreshCache',
-  ///   ),
+  ///   viewType: ErrorViewType.snackBar,
   /// );
   /// ```
   static Future<T?> inBackground<T extends Object>({
     required Future<T?> Function() request,
     required BuildContext context,
+    ErrorViewType viewType = ErrorViewType.snackBar,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -267,6 +243,7 @@ abstract final class SmartExecuter {
     return _executeWithUI<T>(
       request: request,
       context: context,
+      viewType: viewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
@@ -289,26 +266,18 @@ abstract final class SmartExecuter {
   /// Example:
   /// ```dart
   /// await SmartExecuter.runStream(
-  ///   () => uploadService.uploadWithProgress(file),
+  ///   requestStream: () => uploadService.uploadWithProgress(file),
   ///   context: context,
-  ///   options: ExecuterOptions(
-  ///     operationName: 'uploadFile',
-  ///     metadata: {'fileName': file.name},
-  ///   ),
+  ///   viewType: ErrorViewType.dialog,
   ///   listener: (progress) {
   ///     print('Progress: ${progress.percentage}%');
-  ///   },
-  ///   waitingBuilder: (context, progress) {
-  ///     return SmartProgressDialog(
-  ///       progress: progress.percentage / 100,
-  ///       message: 'Uploading...',
-  ///     );
   ///   },
   /// );
   /// ```
   static Future<T?> runStream<T extends Object>({
     required Stream<T?> Function() requestStream,
     required BuildContext context,
+    ErrorViewType viewType = ErrorViewType.snackBar,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -325,6 +294,7 @@ abstract final class SmartExecuter {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
       context: context,
+      viewType: viewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
@@ -346,6 +316,7 @@ abstract final class SmartExecuter {
   static Future<T?> inBackgroundStream<T extends Object>({
     required Stream<T?> Function() requestStream,
     required BuildContext context,
+    ErrorViewType viewType = ErrorViewType.snackBar,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -361,6 +332,7 @@ abstract final class SmartExecuter {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
       context: context,
+      viewType: viewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
@@ -380,6 +352,7 @@ abstract final class SmartExecuter {
   static Future<T?> _executeWithUI<T>({
     required Future<T?> Function() request,
     required BuildContext context,
+    required ErrorViewType viewType,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -396,7 +369,8 @@ abstract final class SmartExecuter {
     final metadata = _createMetadata(options);
 
     // Check connection if required
-    final checkConnection = options.checkConnection ?? config.checkConnectionByDefault;
+    final checkConnection =
+        options.checkConnection ?? config.checkConnectionByDefault;
     if (checkConnection) {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
@@ -408,7 +382,7 @@ abstract final class SmartExecuter {
         );
         await onConnectionError?.call();
         if (context.mounted) {
-          _showError(context, exception);
+          _showError(context, exception, viewType);
         }
         return null;
       }
@@ -446,6 +420,7 @@ abstract final class SmartExecuter {
       final exception = ExceptionMapper.fromDioException(e, metadata);
       await _handleDioError(
         context: context,
+        viewType: viewType,
         exception: exception,
         dioException: e,
         onCancel: onCancel,
@@ -469,7 +444,7 @@ abstract final class SmartExecuter {
       await config.globalErrorHandler?.call(exception);
 
       if (context.mounted) {
-        _showError(context, exception);
+        _showError(context, exception, viewType);
       }
     }
 
@@ -479,6 +454,7 @@ abstract final class SmartExecuter {
   static Future<T?> _executeStreamWithUI<T>({
     required Stream<T?> Function() requestStream,
     required BuildContext context,
+    required ErrorViewType viewType,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -496,7 +472,8 @@ abstract final class SmartExecuter {
     final metadata = _createMetadata(options);
 
     // Check connection if required
-    final checkConnection = options.checkConnection ?? config.checkConnectionByDefault;
+    final checkConnection =
+        options.checkConnection ?? config.checkConnectionByDefault;
     if (checkConnection) {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
@@ -508,7 +485,7 @@ abstract final class SmartExecuter {
         );
         await onConnectionError?.call();
         if (context.mounted) {
-          _showError(context, exception);
+          _showError(context, exception, viewType);
         }
         return null;
       }
@@ -586,6 +563,7 @@ abstract final class SmartExecuter {
       final exception = ExceptionMapper.fromDioException(e, metadata);
       await _handleDioError(
         context: context,
+        viewType: viewType,
         exception: exception,
         dioException: e,
         onCancel: onCancel,
@@ -609,7 +587,7 @@ abstract final class SmartExecuter {
       await config.globalErrorHandler?.call(exception);
 
       if (context.mounted) {
-        _showError(context, exception);
+        _showError(context, exception, viewType);
       }
     } finally {
       await subscription?.cancel();
@@ -621,6 +599,7 @@ abstract final class SmartExecuter {
 
   static Future<void> _handleDioError({
     required BuildContext context,
+    required ErrorViewType viewType,
     required SmartException exception,
     required DioException dioException,
     VoidAsyncCallback? onCancel,
@@ -659,7 +638,7 @@ abstract final class SmartExecuter {
 
     // Show error
     if (context.mounted) {
-      _showError(context, exception);
+      _showError(context, exception, viewType);
     }
   }
 
@@ -700,7 +679,8 @@ abstract final class SmartExecuter {
     }
   }
 
-  static void _showLoadingDialog(BuildContext context, ExecuterOptions options) {
+  static void _showLoadingDialog(
+      BuildContext context, ExecuterOptions options) {
     final config = SmartExecuterConfig.instance;
 
     showDialog<void>(
@@ -715,15 +695,30 @@ abstract final class SmartExecuter {
     );
   }
 
-  static void _showError(BuildContext context, SmartException exception) {
+  static void _showError(
+    BuildContext context,
+    SmartException exception,
+    ErrorViewType viewType,
+  ) {
     final config = SmartExecuterConfig.instance;
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        config.errorSnackBarBuilder?.call(context, exception) ??
-            SmartErrorSnackBar(exception: exception),
-      );
+    switch (viewType) {
+      case ErrorViewType.snackBar:
+        final snackBar = config.snackBarErrorBuilder?.build(context, exception)
+            ?? SmartErrorSnackBar(exception: exception);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(snackBar);
+
+      case ErrorViewType.dialog:
+        final dialogContent =
+            config.dialogErrorBuilder?.build(context, exception)
+                ?? SmartErrorDialog(exception: exception);
+        showDialog<void>(
+          context: context,
+          builder: (_) => dialogContent,
+        );
+    }
   }
 
   static void _logError(

@@ -47,8 +47,8 @@
 ///
 /// - **Loading Dialogs**: Customizable loading dialogs during operations
 /// - **Error Handling**: Comprehensive error handling with specific callbacks
+/// - **Error Builders**: Per-exception-type SnackBar and Dialog builders
 /// - **Result Pattern**: Type-safe success/failure handling
-/// - **Retry Logic**: Automatic retry with exponential backoff
 /// - **Connection Checking**: Optional network connectivity checks
 /// - **Session Management**: Built-in session expiration handling
 /// - **Stream Support**: First-class support for stream-based operations
@@ -64,10 +64,12 @@ export 'src/core/result.dart';
 
 // Configuration exports
 export 'src/config/smart_executer_config.dart';
+export 'src/config/error_builders.dart';
 
 // Widget exports
 export 'src/widgets/loading_dialog.dart';
 export 'src/widgets/error_snack_bar.dart';
+export 'src/widgets/error_dialog.dart';
 export 'src/widgets/status_cards.dart';
 
 // Utility exports

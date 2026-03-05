@@ -1,19 +1,24 @@
 /// Error snack bar widget for SmartExecuter.
 ///
-/// This library provides customizable error snack bars for displaying errors.
+/// This library provides customizable error snack bars for displaying errors
+/// with per-exception-type styling, icons, and colors.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:smart_executer/src/core/exceptions.dart';
 
-/// A customizable error snack bar for displaying errors.
+/// A modern, professional error snack bar with per-exception-type styling.
+///
+/// Features:
+/// - Distinct icon per error type
+/// - Color-coded backgrounds
+/// - Rounded corners with floating behavior
+/// - Clean typography
 ///
 /// Usage:
 /// ```dart
 /// ScaffoldMessenger.of(context).showSnackBar(
-///   SmartErrorSnackBar(
-///     exception: exception,
-///   ),
+///   SmartErrorSnackBar(exception: exception),
 /// );
 /// ```
 class SmartErrorSnackBar extends SnackBar {
@@ -39,23 +44,21 @@ class SmartErrorSnackBar extends SnackBar {
   }) : super(
           content: _SmartErrorContent(
             message: customMessage ?? exception.message,
+            icon: leading == null ? _getIcon(exception) : null,
             leading: leading,
             textColor: textColor,
           ),
           action: action,
           duration: duration,
           backgroundColor: backgroundColor ?? _getBackgroundColor(exception),
-          padding: padding ?? const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 12.0,
-          ),
+          padding: padding ??
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           margin: margin ?? const EdgeInsets.all(8.0),
-          shape: shape ?? RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+          shape: shape ??
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
           behavior: behavior,
           dismissDirection: dismissDirection,
-          elevation: elevation ?? 4.0,
+          elevation: elevation ?? 6.0,
           width: width,
           showCloseIcon: showCloseIcon,
           closeIconColor: closeIconColor,
@@ -63,10 +66,27 @@ class SmartErrorSnackBar extends SnackBar {
 
   static Color _getBackgroundColor(SmartException exception) {
     return switch (exception) {
-      ConnectionException() => const Color(0xFFFF9800), // Orange
-      SessionExpiredException() => const Color(0xFF2196F3), // Blue
-      CancelledException() => const Color(0xFF9E9E9E), // Grey
-      _ => const Color(0xFFF44336), // Red
+      ConnectionException() => const Color(0xFFFF9800),
+      ConnectionTimeoutException() => const Color(0xFFFF5722),
+      SendTimeoutException() => const Color(0xFFFF5722),
+      ReceiveTimeoutException() => const Color(0xFFFF5722),
+      CancelledException() => const Color(0xFF78909C),
+      ResponseException() => const Color(0xFFF44336),
+      SessionExpiredException() => const Color(0xFF1976D2),
+      UnknownException() => const Color(0xFFF44336),
+    };
+  }
+
+  static IconData _getIcon(SmartException exception) {
+    return switch (exception) {
+      ConnectionException() => Icons.wifi_off_rounded,
+      ConnectionTimeoutException() => Icons.timer_off_rounded,
+      SendTimeoutException() => Icons.upload_rounded,
+      ReceiveTimeoutException() => Icons.download_rounded,
+      CancelledException() => Icons.cancel_rounded,
+      ResponseException() => Icons.cloud_off_rounded,
+      SessionExpiredException() => Icons.lock_outline_rounded,
+      UnknownException() => Icons.error_outline_rounded,
     };
   }
 }
@@ -74,11 +94,13 @@ class SmartErrorSnackBar extends SnackBar {
 class _SmartErrorContent extends StatelessWidget {
   const _SmartErrorContent({
     required this.message,
+    this.icon,
     this.leading,
     this.textColor,
   });
 
   final String message;
+  final IconData? icon;
   final Widget? leading;
   final Color? textColor;
 
@@ -89,12 +111,8 @@ class _SmartErrorContent extends StatelessWidget {
         if (leading != null) ...[
           leading!,
           const SizedBox(width: 12.0),
-        ] else ...[
-          Icon(
-            Icons.error_outline,
-            color: textColor ?? Colors.white,
-            size: 24.0,
-          ),
+        ] else if (icon != null) ...[
+          Icon(icon, color: textColor ?? Colors.white, size: 24.0),
           const SizedBox(width: 12.0),
         ],
         Expanded(
@@ -103,6 +121,7 @@ class _SmartErrorContent extends StatelessWidget {
             style: TextStyle(
               color: textColor ?? Colors.white,
               fontSize: 14.0,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -116,9 +135,7 @@ class _SmartErrorContent extends StatelessWidget {
 /// Usage:
 /// ```dart
 /// ScaffoldMessenger.of(context).showSnackBar(
-///   SmartSuccessSnackBar(
-///     message: 'Operation completed successfully!',
-///   ),
+///   SmartSuccessSnackBar(message: 'Operation completed successfully!'),
 /// );
 /// ```
 class SmartSuccessSnackBar extends SnackBar {
@@ -145,7 +162,7 @@ class SmartSuccessSnackBar extends SnackBar {
             children: [
               leading ??
                   Icon(
-                    Icons.check_circle_outline,
+                    Icons.check_circle_outline_rounded,
                     color: textColor ?? Colors.white,
                     size: 24.0,
                   ),
@@ -156,6 +173,7 @@ class SmartSuccessSnackBar extends SnackBar {
                   style: TextStyle(
                     color: textColor ?? Colors.white,
                     fontSize: 14.0,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -163,18 +181,15 @@ class SmartSuccessSnackBar extends SnackBar {
           ),
           action: action,
           duration: duration,
-          backgroundColor: backgroundColor ?? const Color(0xFF4CAF50), // Green
-          padding: padding ?? const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 12.0,
-          ),
+          backgroundColor: backgroundColor ?? const Color(0xFF4CAF50),
+          padding: padding ??
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           margin: margin ?? const EdgeInsets.all(8.0),
-          shape: shape ?? RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+          shape: shape ??
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
           behavior: behavior,
           dismissDirection: dismissDirection,
-          elevation: elevation ?? 4.0,
+          elevation: elevation ?? 6.0,
           width: width,
           showCloseIcon: showCloseIcon,
           closeIconColor: closeIconColor,
@@ -254,7 +269,7 @@ abstract final class SmartSnackBars {
           duration: duration,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(12.0),
           ),
           margin: const EdgeInsets.all(8.0),
         ),

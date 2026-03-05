@@ -8,15 +8,16 @@
 [![Platform](https://img.shields.io/badge/Platform-All-blueviolet?style=for-the-badge)](https://flutter.dev)
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-View_Online-success?style=for-the-badge)](https://geniussystems24.github.io/smart_executer)
 
-A powerful Flutter package for executing async operations with built-in error handling, loading dialogs, retry logic, and Result pattern support.
+A powerful Flutter package for executing async operations with built-in error handling, loading dialogs, error builders, and Result pattern support.
 
 ## Features
 
 - **Loading Dialogs** - Customizable loading dialogs during operations
 - **Error Handling** - Comprehensive error handling with specific callbacks for each error type
+- **Error Builders** - Per-exception-type SnackBar and Dialog builders with full metadata access
+- **Error View Types** - Display errors as SnackBars or Dialogs with `ErrorViewType`
 - **Result Pattern** - Type-safe success/failure handling using sealed classes
 - **Exception Metadata** - Attach debugging info to exceptions for better error tracking
-- **Retry Logic** - Automatic retry with configurable attempts and delays
 - **Connection Checking** - Optional network connectivity verification before requests
 - **Session Management** - Built-in session expiration (401) handling
 - **Stream Support** - First-class support for stream-based operations with progress tracking
@@ -51,8 +52,6 @@ void main() {
     enableLogging: true,
     defaultErrorMessage: 'Something went wrong. Please try again.',
     noConnectionMessage: 'No internet connection',
-    maxRetries: 3,
-    retryDelay: const Duration(seconds: 1),
   );
   runApp(const MyApp());
 }
@@ -63,7 +62,7 @@ void main() {
 ```dart
 // Execute with loading dialog
 final user = await SmartExecuter.run(
-  () => apiService.getUser(id),
+  request: () => apiService.getUser(id),
   context: context,
 );
 
@@ -77,8 +76,28 @@ if (user != null) {
 ```dart
 // Execute without loading dialog
 final data = await SmartExecuter.inBackground(
-  () => apiService.refreshCache(),
+  request: () => apiService.refreshCache(),
   context: context,
+);
+```
+
+### 4. Error View Types
+
+Choose how errors are displayed — as a SnackBar or Dialog:
+
+```dart
+// Show errors as a dialog
+final user = await SmartExecuter.run(
+  request: () => apiService.getUser(id),
+  context: context,
+  viewType: ErrorViewType.dialog,
+);
+
+// Show errors as a snackbar (default)
+final data = await SmartExecuter.inBackground(
+  request: () => apiService.refreshCache(),
+  context: context,
+  viewType: ErrorViewType.snackBar,
 );
 ```
 
@@ -197,16 +216,36 @@ result.onFailure((exception) {
 });
 ```
 
-### With Retry Logic
+### Error Builders
+
+Configure per-exception-type error builders globally:
 
 ```dart
-final data = await SmartExecuter.run(
-  () => apiService.fetchData(),
-  context: context,
-  options: ExecuterOptions(
-    maxRetries: 3,
-    retryDelay: const Duration(seconds: 2),
-    checkConnection: true,
+SmartExecuterConfig.initialize(
+  // Custom SnackBar builders
+  snackBarErrorBuilder: SnackBarErrorBuilder(
+    baseBuilder: (context, exception) => SnackBar(
+      content: Text(exception.message),
+    ),
+    connectionBuilder: (context, exception) => SnackBar(
+      content: Text('No internet: ${exception.metadata.operationName}'),
+      backgroundColor: Colors.orange,
+    ),
+  ),
+
+  // Custom Dialog builders
+  dialogErrorBuilder: DialogErrorBuilder(
+    baseBuilder: (context, exception) => AlertDialog(
+      title: const Text('Error'),
+      content: Text(exception.message),
+    ),
+    responseBuilder: (context, exception) {
+      final resp = exception as ResponseException;
+      return AlertDialog(
+        title: Text('Server Error ${resp.statusCode}'),
+        content: Text(resp.message),
+      );
+    },
   ),
 );
 ```
@@ -262,14 +301,21 @@ SmartExecuterConfig.initialize(
   // Custom loading dialog
   loadingDialogBuilder: (context) => const MyCustomLoadingDialog(),
 
-  // Custom error snack bar
-  errorSnackBarBuilder: (context, exception) => MyErrorSnackBar(
-    message: exception.message,
+  // Custom error builders (optional — defaults are used if not provided)
+  snackBarErrorBuilder: SnackBarErrorBuilder(
+    baseBuilder: (context, exception) => SnackBar(
+      content: Text(exception.message),
+    ),
+  ),
+  dialogErrorBuilder: DialogErrorBuilder(
+    baseBuilder: (context, exception) => AlertDialog(
+      title: const Text('Error'),
+      content: Text(exception.message),
+    ),
   ),
 
   // Global error handler
   globalErrorHandler: (exception) async {
-    // Log all errors with metadata
     logger.error(
       'Error in ${exception.metadata.operationName}',
       error: exception,
@@ -289,10 +335,6 @@ SmartExecuterConfig.initialize(
   sessionExpiredMessage: 'Your session has expired',
   sessionExpiredTitle: 'Session Expired',
 
-  // Retry configuration
-  maxRetries: 3,
-  retryDelay: const Duration(seconds: 1),
-
   // Connection checking
   checkConnectionByDefault: false,
 
@@ -309,8 +351,6 @@ Override global configuration for specific operations:
 final options = ExecuterOptions(
   showLoadingDialog: true,
   checkConnection: true,
-  maxRetries: 5,
-  retryDelay: const Duration(seconds: 2),
   timeout: const Duration(seconds: 30),
   barrierDismissible: false,
   barrierColor: Colors.black54,
@@ -320,8 +360,9 @@ final options = ExecuterOptions(
 );
 
 await SmartExecuter.run(
-  () => apiService.longRunningOperation(),
+  request: () => apiService.longRunningOperation(),
   context: context,
+  viewType: ErrorViewType.dialog,
   options: options,
 );
 ```
@@ -436,13 +477,26 @@ SmartProgressDialog(
 
 ### SmartErrorSnackBar
 
-An error snack bar with automatic styling:
+An error snack bar with per-exception-type icons and colors:
 
 ```dart
 SmartErrorSnackBar(
   exception: exception,
   customMessage: 'Custom error message',
   duration: const Duration(seconds: 4),
+)
+```
+
+### SmartErrorDialog
+
+A modern error dialog with per-exception-type styling:
+
+```dart
+SmartErrorDialog(
+  exception: exception,
+  customMessage: 'Custom error message',
+  customTitle: 'Custom Title',
+  onDismiss: () => print('Dialog dismissed'),
 )
 ```
 
@@ -732,8 +786,6 @@ ConnectivityChecker.onConnectivityChanged.listen((results) {
 |----------|------|---------|-------------|
 | `showLoadingDialog` | `bool` | `true` | Show loading dialog |
 | `checkConnection` | `bool?` | `null` | Check connectivity |
-| `maxRetries` | `int?` | `null` | Max retry attempts |
-| `retryDelay` | `Duration?` | `null` | Delay between retries |
 | `timeout` | `Duration?` | `null` | Operation timeout |
 | `loadingWidget` | `Widget?` | `null` | Custom loading widget |
 | `barrierDismissible` | `bool` | `false` | Can dismiss dialog |

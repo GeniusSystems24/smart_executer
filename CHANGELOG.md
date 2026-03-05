@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-03-05
+
+### Added
+
+- **Error Builders**: New per-exception-type error builder system
+  - `SnackBarErrorBuilder` - Configure custom SnackBars for each exception type
+  - `DialogErrorBuilder` - Configure custom Dialogs for each exception type
+  - Both support: `baseBuilder`, per-type builders (`connectionBuilder`, `connectionTimeoutBuilder`, `sendTimeoutBuilder`, `receiveTimeoutBuilder`, `cancelledBuilder`, `responseBuilder`, `sessionExpiredBuilder`), and `customBuilder` for unknown types
+  - All builders receive full `SmartException` with `ExceptionMetadata`
+
+- **Error View Types**: New `ErrorViewType` enum (`snackBar`, `dialog`)
+  - Added `viewType` parameter to `run()`, `inBackground()`, `runStream()`, `inBackgroundStream()`
+  - Added optional `context` and `viewType` to `execute()` for visual error display
+  - Default view type is `ErrorViewType.snackBar`
+
+- **SmartErrorDialog**: New default error dialog widget
+  - Modern Material 3 design with colored icon circle
+  - Per-exception-type icons, colors, and titles
+  - Rounded corners with styled action button
+
+- **Enhanced SmartErrorSnackBar**: Upgraded default design
+  - Distinct icons per error type (`wifi_off`, `timer_off`, `upload`, `download`, `cancel`, `cloud_off`, `lock_outline`, `error_outline`)
+  - Improved rounded corners and elevation
+
+### Changed
+
+- **BREAKING**: `SmartExecuterConfig.initialize()` now uses `snackBarErrorBuilder` (type `SnackBarErrorBuilder`) and `dialogErrorBuilder` (type `DialogErrorBuilder`) instead of `errorSnackBarBuilder` (type `ErrorSnackBarBuilder`)
+- **BREAKING**: Removed `ErrorSnackBarBuilder` typedef from config
+
+### Removed
+
+- **BREAKING**: Removed auto-retry mechanism entirely
+  - Removed `maxRetries` and `retryDelay` from `SmartExecuterConfig.initialize()`
+  - Removed `maxRetries` and `retryDelay` from `ExecuterOptions`
+  - Removed retry loop from `SmartExecuter.execute()`
+
 ## [1.4.0] - 2025-01-01
 
 ### Added

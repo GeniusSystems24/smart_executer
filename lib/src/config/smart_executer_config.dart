@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:smart_executer/src/config/error_builders.dart';
 import 'package:smart_executer/src/core/exceptions.dart';
 
 /// Callback type for handling errors.
@@ -15,12 +16,6 @@ typedef SessionExpiredCallback = Future<void> Function();
 
 /// Builder type for creating loading dialogs.
 typedef LoadingDialogBuilder = Widget Function(BuildContext context);
-
-/// Builder type for creating error snack bars.
-typedef ErrorSnackBarBuilder = SnackBar Function(
-  BuildContext context,
-  SmartException exception,
-);
 
 /// Builder type for creating session expired dialogs.
 typedef SessionExpiredDialogBuilder = Widget Function(
@@ -35,6 +30,17 @@ typedef SessionExpiredDialogBuilder = Widget Function(
 /// void main() {
 ///   SmartExecuterConfig.initialize(
 ///     loadingDialogBuilder: (context) => MyCustomLoadingDialog(),
+///     snackBarErrorBuilder: SnackBarErrorBuilder(
+///       baseBuilder: (context, exception) => SnackBar(
+///         content: Text(exception.message),
+///       ),
+///     ),
+///     dialogErrorBuilder: DialogErrorBuilder(
+///       baseBuilder: (context, exception) => AlertDialog(
+///         title: Text('Error'),
+///         content: Text(exception.message),
+///       ),
+///     ),
 ///     defaultErrorMessage: 'Something went wrong',
 ///     enableLogging: true,
 ///   );
@@ -57,7 +63,8 @@ final class SmartExecuterConfig {
   /// Call this method once at app startup to configure SmartExecuter.
   static void initialize({
     LoadingDialogBuilder? loadingDialogBuilder,
-    ErrorSnackBarBuilder? errorSnackBarBuilder,
+    SnackBarErrorBuilder? snackBarErrorBuilder,
+    DialogErrorBuilder? dialogErrorBuilder,
     SessionExpiredDialogBuilder? sessionExpiredDialogBuilder,
     ErrorCallback? globalErrorHandler,
     SessionExpiredCallback? onSessionExpired,
@@ -67,13 +74,12 @@ final class SmartExecuterConfig {
     String? sessionExpiredTitle,
     bool enableLogging = false,
     Duration? defaultTimeout,
-    int? maxRetries,
-    Duration? retryDelay,
     bool checkConnectionByDefault = false,
   }) {
     final config = instance;
     config._loadingDialogBuilder = loadingDialogBuilder;
-    config._errorSnackBarBuilder = errorSnackBarBuilder;
+    config._snackBarErrorBuilder = snackBarErrorBuilder;
+    config._dialogErrorBuilder = dialogErrorBuilder;
     config._sessionExpiredDialogBuilder = sessionExpiredDialogBuilder;
     config._globalErrorHandler = globalErrorHandler;
     config._onSessionExpired = onSessionExpired;
@@ -83,8 +89,6 @@ final class SmartExecuterConfig {
     config._sessionExpiredTitle = sessionExpiredTitle;
     config._enableLogging = enableLogging;
     config._defaultTimeout = defaultTimeout;
-    config._maxRetries = maxRetries;
-    config._retryDelay = retryDelay;
     config._checkConnectionByDefault = checkConnectionByDefault;
   }
 
@@ -95,7 +99,8 @@ final class SmartExecuterConfig {
 
   // Private configuration fields
   LoadingDialogBuilder? _loadingDialogBuilder;
-  ErrorSnackBarBuilder? _errorSnackBarBuilder;
+  SnackBarErrorBuilder? _snackBarErrorBuilder;
+  DialogErrorBuilder? _dialogErrorBuilder;
   SessionExpiredDialogBuilder? _sessionExpiredDialogBuilder;
   ErrorCallback? _globalErrorHandler;
   SessionExpiredCallback? _onSessionExpired;
@@ -105,15 +110,20 @@ final class SmartExecuterConfig {
   String? _sessionExpiredTitle;
   bool _enableLogging = false;
   Duration? _defaultTimeout;
-  int? _maxRetries;
-  Duration? _retryDelay;
   bool _checkConnectionByDefault = false;
 
   /// Builder for creating loading dialogs.
   LoadingDialogBuilder? get loadingDialogBuilder => _loadingDialogBuilder;
 
   /// Builder for creating error snack bars.
-  ErrorSnackBarBuilder? get errorSnackBarBuilder => _errorSnackBarBuilder;
+  ///
+  /// If null, the library's default [SmartErrorSnackBar] is used.
+  SnackBarErrorBuilder? get snackBarErrorBuilder => _snackBarErrorBuilder;
+
+  /// Builder for creating error dialogs.
+  ///
+  /// If null, the library's default [SmartErrorDialog] is used.
+  DialogErrorBuilder? get dialogErrorBuilder => _dialogErrorBuilder;
 
   /// Builder for creating session expired dialogs.
   SessionExpiredDialogBuilder? get sessionExpiredDialogBuilder =>
@@ -135,23 +145,18 @@ final class SmartExecuterConfig {
 
   /// Message shown when the session has expired.
   String get sessionExpiredMessage =>
-      _sessionExpiredMessage ?? 'Your session has expired. Please sign in again.';
+      _sessionExpiredMessage ??
+      'Your session has expired. Please sign in again.';
 
   /// Title for the session expired dialog.
-  String get sessionExpiredTitle =>
-      _sessionExpiredTitle ?? 'Session Expired';
+  String get sessionExpiredTitle => _sessionExpiredTitle ?? 'Session Expired';
 
   /// Whether to enable logging for debugging.
   bool get enableLogging => _enableLogging;
 
   /// Default timeout for operations.
-  Duration get defaultTimeout => _defaultTimeout ?? const Duration(seconds: 30);
-
-  /// Maximum number of retry attempts.
-  int get maxRetries => _maxRetries ?? 0;
-
-  /// Delay between retry attempts.
-  Duration get retryDelay => _retryDelay ?? const Duration(seconds: 1);
+  Duration get defaultTimeout =>
+      _defaultTimeout ?? const Duration(seconds: 30);
 
   /// Whether to check connection before requests by default.
   bool get checkConnectionByDefault => _checkConnectionByDefault;
@@ -162,12 +167,11 @@ final class SmartExecuterConfig {
 /// Use this to override global configuration for specific operations:
 /// ```dart
 /// await SmartExecuter.run(
-///   () => fetchData(),
+///   request: () => fetchData(),
 ///   context: context,
 ///   options: ExecuterOptions(
 ///     showLoadingDialog: true,
 ///     checkConnection: true,
-///     maxRetries: 3,
 ///     operationName: 'fetchUserData',
 ///     metadata: {'userId': '123'},
 ///   ),
@@ -178,8 +182,6 @@ final class ExecuterOptions {
   const ExecuterOptions({
     this.showLoadingDialog = true,
     this.checkConnection,
-    this.maxRetries,
-    this.retryDelay,
     this.timeout,
     this.loadingWidget,
     this.barrierDismissible = false,
@@ -200,12 +202,6 @@ final class ExecuterOptions {
   /// Whether to check internet connection before the operation.
   /// If null, uses the global configuration.
   final bool? checkConnection;
-
-  /// Maximum number of retry attempts. If null, uses global configuration.
-  final int? maxRetries;
-
-  /// Delay between retry attempts. If null, uses global configuration.
-  final Duration? retryDelay;
 
   /// Timeout for the operation. If null, uses global configuration.
   final Duration? timeout;
@@ -244,8 +240,6 @@ final class ExecuterOptions {
   ExecuterOptions copyWith({
     bool? showLoadingDialog,
     bool? checkConnection,
-    int? maxRetries,
-    Duration? retryDelay,
     Duration? timeout,
     Widget? loadingWidget,
     bool? barrierDismissible,
@@ -256,8 +250,6 @@ final class ExecuterOptions {
     return ExecuterOptions(
       showLoadingDialog: showLoadingDialog ?? this.showLoadingDialog,
       checkConnection: checkConnection ?? this.checkConnection,
-      maxRetries: maxRetries ?? this.maxRetries,
-      retryDelay: retryDelay ?? this.retryDelay,
       timeout: timeout ?? this.timeout,
       loadingWidget: loadingWidget ?? this.loadingWidget,
       barrierDismissible: barrierDismissible ?? this.barrierDismissible,
