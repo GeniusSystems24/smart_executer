@@ -5,8 +5,8 @@
 [![popularity](https://img.shields.io/pub/popularity/smart_executer)](https://pub.dev/packages/smart_executer/score)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![points](https://img.shields.io/pub/points/smart_executer)](https://pub.dev/packages/smart_executer/score)
-[![Platform](https://img.shields.io/badge/Platform-All-blueviolet?style=for-the-badge)](https://flutter.dev)
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-View_Online-success?style=for-the-badge)](https://geniussystems24.github.io/smart_executer)
+[![Platform](https://img.shields.io/badge/Platform-All-blueviolet)](https://flutter.dev)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-View_Online-success)](https://geniussystems24.github.io/smart_executer)
 
 A powerful Flutter package for executing async operations with built-in error handling, loading dialogs, error builders, and Result pattern support.
 
@@ -31,7 +31,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^1.3.0
+  smart_executer: ^2.0.1
 ```
 
 Then run:
