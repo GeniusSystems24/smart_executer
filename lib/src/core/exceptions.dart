@@ -6,6 +6,52 @@ library;
 
 import 'package:dio/dio.dart';
 
+/// Identifies the type of a [SmartException] without pattern matching.
+///
+/// Each [SmartException] subclass has a corresponding [SmartExceptionType]
+/// accessible via [SmartException.exceptionType].
+///
+/// Example:
+/// ```dart
+/// if (exception.exceptionType == SmartExceptionType.connection) {
+///   showOfflineMessage();
+/// }
+///
+/// switch (exception.exceptionType) {
+///   case SmartExceptionType.connection:
+///     showOfflineMessage();
+///   case SmartExceptionType.sessionExpired:
+///     redirectToLogin();
+///   default:
+///     showGenericError();
+/// }
+/// ```
+enum SmartExceptionType {
+  /// Corresponds to [ConnectionException].
+  connection,
+
+  /// Corresponds to [ConnectionTimeoutException].
+  connectionTimeout,
+
+  /// Corresponds to [SendTimeoutException].
+  sendTimeout,
+
+  /// Corresponds to [ReceiveTimeoutException].
+  receiveTimeout,
+
+  /// Corresponds to [CancelledException].
+  cancelled,
+
+  /// Corresponds to [ResponseException].
+  response,
+
+  /// Corresponds to [SessionExpiredException].
+  sessionExpired,
+
+  /// Corresponds to [UnknownException].
+  unknown,
+}
+
 /// Metadata that can be attached to exceptions for debugging and logging.
 ///
 /// Example:
@@ -131,6 +177,17 @@ sealed class SmartException implements Exception {
   /// Metadata attached to this exception for debugging.
   final ExceptionMetadata metadata;
 
+  /// The type of this exception for convenient identification.
+  ///
+  /// Use this instead of pattern matching when you only need to check
+  /// the exception type:
+  /// ```dart
+  /// if (exception.exceptionType == SmartExceptionType.connection) {
+  ///   showOfflineMessage();
+  /// }
+  /// ```
+  SmartExceptionType get exceptionType;
+
   /// Returns a copy of this exception with the given metadata attached.
   SmartException withMetadata(ExceptionMetadata metadata);
 
@@ -147,6 +204,9 @@ final class ConnectionException extends SmartException {
     super.stackTrace,
     super.metadata = const ExceptionMetadata(),
   ]);
+
+  @override
+  SmartExceptionType get exceptionType => SmartExceptionType.connection;
 
   @override
   ConnectionException withMetadata(ExceptionMetadata metadata) {
@@ -168,6 +228,9 @@ final class ConnectionTimeoutException extends SmartException {
   ]);
 
   @override
+  SmartExceptionType get exceptionType => SmartExceptionType.connectionTimeout;
+
+  @override
   ConnectionTimeoutException withMetadata(ExceptionMetadata metadata) {
     return ConnectionTimeoutException(message, cause, stackTrace, metadata);
   }
@@ -185,6 +248,9 @@ final class SendTimeoutException extends SmartException {
     super.stackTrace,
     super.metadata = const ExceptionMetadata(),
   ]);
+
+  @override
+  SmartExceptionType get exceptionType => SmartExceptionType.sendTimeout;
 
   @override
   SendTimeoutException withMetadata(ExceptionMetadata metadata) {
@@ -206,6 +272,9 @@ final class ReceiveTimeoutException extends SmartException {
   ]);
 
   @override
+  SmartExceptionType get exceptionType => SmartExceptionType.receiveTimeout;
+
+  @override
   ReceiveTimeoutException withMetadata(ExceptionMetadata metadata) {
     return ReceiveTimeoutException(message, cause, stackTrace, metadata);
   }
@@ -223,6 +292,9 @@ final class CancelledException extends SmartException {
     super.stackTrace,
     super.metadata = const ExceptionMetadata(),
   ]);
+
+  @override
+  SmartExceptionType get exceptionType => SmartExceptionType.cancelled;
 
   @override
   CancelledException withMetadata(ExceptionMetadata metadata) {
@@ -250,6 +322,9 @@ final class ResponseException extends SmartException {
 
   /// Response data from the server.
   final dynamic responseData;
+
+  @override
+  SmartExceptionType get exceptionType => SmartExceptionType.response;
 
   /// Returns true if this is an authentication error (401).
   bool get isUnauthorized => statusCode == 401;
@@ -290,6 +365,9 @@ final class SessionExpiredException extends SmartException {
   ]);
 
   @override
+  SmartExceptionType get exceptionType => SmartExceptionType.sessionExpired;
+
+  @override
   SessionExpiredException withMetadata(ExceptionMetadata metadata) {
     return SessionExpiredException(message, cause, stackTrace, metadata);
   }
@@ -307,6 +385,9 @@ final class UnknownException extends SmartException {
     super.stackTrace,
     super.metadata = const ExceptionMetadata(),
   ]);
+
+  @override
+  SmartExceptionType get exceptionType => SmartExceptionType.unknown;
 
   @override
   UnknownException withMetadata(ExceptionMetadata metadata) {

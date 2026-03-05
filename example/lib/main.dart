@@ -13,11 +13,10 @@ void main() {
     noConnectionMessage: 'No internet connection. Please check your network.',
     sessionExpiredMessage: 'Your session has expired. Please sign in again.',
     sessionExpiredTitle: 'Session Expired',
-    maxRetries: 2,
-    retryDelay: const Duration(seconds: 1),
     checkConnectionByDefault: false,
     globalErrorHandler: (exception) async {
-      debugPrint('Global error: ${exception.message}');
+      debugPrint(
+          'Global error [${exception.exceptionType.name}]: ${exception.message}');
       if (exception.metadata.hasData) {
         debugPrint('Metadata: ${exception.metadata.toMap()}');
       }

@@ -92,8 +92,8 @@ class _AutoRetryPageState extends State<AutoRetryPage> {
         slivers: [
           SliverToBoxAdapter(
             child: PremiumPageHeader(
-              title: 'Auto Retry',
-              subtitle: 'Automatically retry failed requests',
+              title: 'Manual Retry Pattern',
+              subtitle: 'Implement custom retry logic for failed requests',
               icon: Icons.refresh_rounded,
               gradient: AppColors.warmGradient,
             ),

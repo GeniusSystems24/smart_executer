@@ -65,28 +65,28 @@ class SmartErrorSnackBar extends SnackBar {
         );
 
   static Color _getBackgroundColor(SmartException exception) {
-    return switch (exception) {
-      ConnectionException() => const Color(0xFFFF9800),
-      ConnectionTimeoutException() => const Color(0xFFFF5722),
-      SendTimeoutException() => const Color(0xFFFF5722),
-      ReceiveTimeoutException() => const Color(0xFFFF5722),
-      CancelledException() => const Color(0xFF78909C),
-      ResponseException() => const Color(0xFFF44336),
-      SessionExpiredException() => const Color(0xFF1976D2),
-      UnknownException() => const Color(0xFFF44336),
+    return switch (exception.exceptionType) {
+      SmartExceptionType.connection => const Color(0xFFFF9800),
+      SmartExceptionType.connectionTimeout => const Color(0xFFFF5722),
+      SmartExceptionType.sendTimeout => const Color(0xFFFF5722),
+      SmartExceptionType.receiveTimeout => const Color(0xFFFF5722),
+      SmartExceptionType.cancelled => const Color(0xFF78909C),
+      SmartExceptionType.response => const Color(0xFFF44336),
+      SmartExceptionType.sessionExpired => const Color(0xFF1976D2),
+      SmartExceptionType.unknown => const Color(0xFFF44336),
     };
   }
 
   static IconData _getIcon(SmartException exception) {
-    return switch (exception) {
-      ConnectionException() => Icons.wifi_off_rounded,
-      ConnectionTimeoutException() => Icons.timer_off_rounded,
-      SendTimeoutException() => Icons.upload_rounded,
-      ReceiveTimeoutException() => Icons.download_rounded,
-      CancelledException() => Icons.cancel_rounded,
-      ResponseException() => Icons.cloud_off_rounded,
-      SessionExpiredException() => Icons.lock_outline_rounded,
-      UnknownException() => Icons.error_outline_rounded,
+    return switch (exception.exceptionType) {
+      SmartExceptionType.connection => Icons.wifi_off_rounded,
+      SmartExceptionType.connectionTimeout => Icons.timer_off_rounded,
+      SmartExceptionType.sendTimeout => Icons.upload_rounded,
+      SmartExceptionType.receiveTimeout => Icons.download_rounded,
+      SmartExceptionType.cancelled => Icons.cancel_rounded,
+      SmartExceptionType.response => Icons.cloud_off_rounded,
+      SmartExceptionType.sessionExpired => Icons.lock_outline_rounded,
+      SmartExceptionType.unknown => Icons.error_outline_rounded,
     };
   }
 }

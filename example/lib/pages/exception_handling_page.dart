@@ -113,6 +113,9 @@ switch (result) {
   ),
 );
 
+// Access exception type
+print(exception.exceptionType); // SmartExceptionType.response
+
 // Access metadata
 print(exception.metadata.operationName);
 print(exception.metadata.toMap());''',

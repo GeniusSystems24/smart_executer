@@ -413,35 +413,49 @@ final enrichedException = exception.withMetadata(
 
 ## Exception Types
 
-SmartExecuter provides specific exception types for different error scenarios:
+SmartExecuter provides specific exception types for different error scenarios.
+Each exception has an `exceptionType` getter for convenient type identification:
 
-| Exception | Description |
-|-----------|-------------|
-| `ConnectionException` | No internet connection |
-| `ConnectionTimeoutException` | Connection timeout |
-| `SendTimeoutException` | Request send timeout |
-| `ReceiveTimeoutException` | Response receive timeout |
-| `CancelledException` | Request was cancelled |
-| `ResponseException` | Server error response |
-| `SessionExpiredException` | 401 Unauthorized |
-| `UnknownException` | Unknown error |
+| Exception | `exceptionType` | Description |
+|-----------|-----------------|-------------|
+| `ConnectionException` | `connection` | No internet connection |
+| `ConnectionTimeoutException` | `connectionTimeout` | Connection timeout |
+| `SendTimeoutException` | `sendTimeout` | Request send timeout |
+| `ReceiveTimeoutException` | `receiveTimeout` | Response receive timeout |
+| `CancelledException` | `cancelled` | Request was cancelled |
+| `ResponseException` | `response` | Server error response |
+| `SessionExpiredException` | `sessionExpired` | 401 Unauthorized |
+| `UnknownException` | `unknown` | Unknown error |
 
 ```dart
 final result = await SmartExecuter.execute(() => apiService.getData());
 
 result.onFailure((exception) {
-  // Access metadata in any exception type
-  print('Failed: ${exception.metadata.operationName}');
+  // Use exceptionType for simple type checks
+  if (exception.exceptionType == SmartExceptionType.connection) {
+    showOfflineMessage();
+    return;
+  }
 
-  switch (exception) {
-    case ConnectionException():
+  // Or use switch on exceptionType
+  switch (exception.exceptionType) {
+    case SmartExceptionType.connection:
       showOfflineMessage();
-    case SessionExpiredException():
+    case SmartExceptionType.sessionExpired:
       redirectToLogin();
-    case ResponseException(:final statusCode):
-      if (statusCode == 404) showNotFoundMessage();
+    case SmartExceptionType.response:
+      final resp = exception as ResponseException;
+      if (resp.statusCode == 404) showNotFoundMessage();
     default:
       showGenericError();
+  }
+
+  // Pattern matching still works for accessing subclass data
+  switch (exception) {
+    case ResponseException(:final statusCode):
+      print('Status: $statusCode');
+    default:
+      print('Error: ${exception.message}');
   }
 });
 ```

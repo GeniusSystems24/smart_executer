@@ -107,15 +107,15 @@ final class SnackBarErrorBuilder {
 
   /// Resolves the appropriate builder and creates a [SnackBar].
   SnackBar build(BuildContext context, SmartException exception) {
-    final specificBuilder = switch (exception) {
-      ConnectionException() => connectionBuilder,
-      ConnectionTimeoutException() => connectionTimeoutBuilder,
-      SendTimeoutException() => sendTimeoutBuilder,
-      ReceiveTimeoutException() => receiveTimeoutBuilder,
-      CancelledException() => cancelledBuilder,
-      ResponseException() => responseBuilder,
-      SessionExpiredException() => sessionExpiredBuilder,
-      UnknownException() => customBuilder,
+    final specificBuilder = switch (exception.exceptionType) {
+      SmartExceptionType.connection => connectionBuilder,
+      SmartExceptionType.connectionTimeout => connectionTimeoutBuilder,
+      SmartExceptionType.sendTimeout => sendTimeoutBuilder,
+      SmartExceptionType.receiveTimeout => receiveTimeoutBuilder,
+      SmartExceptionType.cancelled => cancelledBuilder,
+      SmartExceptionType.response => responseBuilder,
+      SmartExceptionType.sessionExpired => sessionExpiredBuilder,
+      SmartExceptionType.unknown => customBuilder,
     };
 
     final builder = specificBuilder ?? baseBuilder;
@@ -200,15 +200,15 @@ final class DialogErrorBuilder {
 
   /// Resolves the appropriate builder and creates a dialog [Widget].
   Widget build(BuildContext context, SmartException exception) {
-    final specificBuilder = switch (exception) {
-      ConnectionException() => connectionBuilder,
-      ConnectionTimeoutException() => connectionTimeoutBuilder,
-      SendTimeoutException() => sendTimeoutBuilder,
-      ReceiveTimeoutException() => receiveTimeoutBuilder,
-      CancelledException() => cancelledBuilder,
-      ResponseException() => responseBuilder,
-      SessionExpiredException() => sessionExpiredBuilder,
-      UnknownException() => customBuilder,
+    final specificBuilder = switch (exception.exceptionType) {
+      SmartExceptionType.connection => connectionBuilder,
+      SmartExceptionType.connectionTimeout => connectionTimeoutBuilder,
+      SmartExceptionType.sendTimeout => sendTimeoutBuilder,
+      SmartExceptionType.receiveTimeout => receiveTimeoutBuilder,
+      SmartExceptionType.cancelled => cancelledBuilder,
+      SmartExceptionType.response => responseBuilder,
+      SmartExceptionType.sessionExpired => sessionExpiredBuilder,
+      SmartExceptionType.unknown => customBuilder,
     };
 
     final builder = specificBuilder ?? baseBuilder;

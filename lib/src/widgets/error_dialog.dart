@@ -126,41 +126,41 @@ class SmartErrorDialog extends StatelessWidget {
   }
 
   static Color _getColor(SmartException exception) {
-    return switch (exception) {
-      ConnectionException() => const Color(0xFFFF9800),
-      ConnectionTimeoutException() => const Color(0xFFFF5722),
-      SendTimeoutException() => const Color(0xFFFF5722),
-      ReceiveTimeoutException() => const Color(0xFFFF5722),
-      CancelledException() => const Color(0xFF78909C),
-      ResponseException() => const Color(0xFFF44336),
-      SessionExpiredException() => const Color(0xFF1976D2),
-      UnknownException() => const Color(0xFFF44336),
+    return switch (exception.exceptionType) {
+      SmartExceptionType.connection => const Color(0xFFFF9800),
+      SmartExceptionType.connectionTimeout => const Color(0xFFFF5722),
+      SmartExceptionType.sendTimeout => const Color(0xFFFF5722),
+      SmartExceptionType.receiveTimeout => const Color(0xFFFF5722),
+      SmartExceptionType.cancelled => const Color(0xFF78909C),
+      SmartExceptionType.response => const Color(0xFFF44336),
+      SmartExceptionType.sessionExpired => const Color(0xFF1976D2),
+      SmartExceptionType.unknown => const Color(0xFFF44336),
     };
   }
 
   static IconData _getIcon(SmartException exception) {
-    return switch (exception) {
-      ConnectionException() => Icons.wifi_off_rounded,
-      ConnectionTimeoutException() => Icons.timer_off_rounded,
-      SendTimeoutException() => Icons.upload_rounded,
-      ReceiveTimeoutException() => Icons.download_rounded,
-      CancelledException() => Icons.cancel_rounded,
-      ResponseException() => Icons.cloud_off_rounded,
-      SessionExpiredException() => Icons.lock_outline_rounded,
-      UnknownException() => Icons.error_outline_rounded,
+    return switch (exception.exceptionType) {
+      SmartExceptionType.connection => Icons.wifi_off_rounded,
+      SmartExceptionType.connectionTimeout => Icons.timer_off_rounded,
+      SmartExceptionType.sendTimeout => Icons.upload_rounded,
+      SmartExceptionType.receiveTimeout => Icons.download_rounded,
+      SmartExceptionType.cancelled => Icons.cancel_rounded,
+      SmartExceptionType.response => Icons.cloud_off_rounded,
+      SmartExceptionType.sessionExpired => Icons.lock_outline_rounded,
+      SmartExceptionType.unknown => Icons.error_outline_rounded,
     };
   }
 
   static String _getTitle(SmartException exception) {
-    return switch (exception) {
-      ConnectionException() => 'Connection Error',
-      ConnectionTimeoutException() => 'Connection Timeout',
-      SendTimeoutException() => 'Send Timeout',
-      ReceiveTimeoutException() => 'Receive Timeout',
-      CancelledException() => 'Cancelled',
-      ResponseException() => 'Server Error',
-      SessionExpiredException() => 'Session Expired',
-      UnknownException() => 'Error',
+    return switch (exception.exceptionType) {
+      SmartExceptionType.connection => 'Connection Error',
+      SmartExceptionType.connectionTimeout => 'Connection Timeout',
+      SmartExceptionType.sendTimeout => 'Send Timeout',
+      SmartExceptionType.receiveTimeout => 'Receive Timeout',
+      SmartExceptionType.cancelled => 'Cancelled',
+      SmartExceptionType.response => 'Server Error',
+      SmartExceptionType.sessionExpired => 'Session Expired',
+      SmartExceptionType.unknown => 'Error',
     };
   }
 }

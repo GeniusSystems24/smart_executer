@@ -26,7 +26,7 @@ class _BasicUsagePageState extends State<BasicUsagePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -89,6 +89,7 @@ class _BasicUsagePageState extends State<BasicUsagePage>
                   Tab(text: 'Result Pattern'),
                   Tab(text: 'Connectivity'),
                   Tab(text: 'Snack Bars'),
+                  Tab(text: 'Error Views'),
                 ],
               ),
             ),
@@ -111,6 +112,7 @@ class _BasicUsagePageState extends State<BasicUsagePage>
                   _buildResultPatternTab(),
                   _buildConnectivityTab(),
                   _buildSnackBarsTab(),
+                  _buildErrorViewsTab(),
                 ],
               ),
             ),
@@ -448,6 +450,123 @@ SmartSnackBars.showError(
       onConnectionError: () async =>
           _setResult('📴 No connection', isError: true),
       onSuccess: (r) async => _setResult('✓ Connected: ${r.data?['title']}'),
+    );
+  }
+
+  Widget _buildErrorViewsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          // Info card
+          Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.lightbulb_rounded, color: AppColors.info),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Text(
+                      'Choose how errors are displayed: as a SnackBar (default) or as a Dialog.',
+                      style: TextStyle(
+                          color: AppColors.info.withValues(alpha: 0.9),
+                          fontSize: 13))),
+            ]),
+          ),
+          InteractiveDemoPanel(
+            title: 'Error as SnackBar',
+            description: 'Default error display at the bottom of the screen',
+            demo: GradientButton(
+              label: 'Trigger SnackBar Error',
+              icon: Icons.notification_important_rounded,
+              onPressed: _triggerSnackBarError,
+            ),
+            code: '''await SmartExecuter.run(
+  request: () => dio.get('/invalid'),
+  context: context,
+  viewType: ErrorViewType.snackBar, // default
+);''',
+          ),
+          InteractiveDemoPanel(
+            title: 'Error as Dialog',
+            description: 'Show errors in a centered dialog',
+            demo: GradientButton(
+              label: 'Trigger Dialog Error',
+              icon: Icons.error_rounded,
+              gradient: AppColors.warmGradient,
+              onPressed: _triggerDialogError,
+            ),
+            code: '''await SmartExecuter.run(
+  request: () => dio.get('/invalid'),
+  context: context,
+  viewType: ErrorViewType.dialog,
+);''',
+          ),
+          InteractiveDemoPanel(
+            title: 'Direct Error Dialog',
+            description: 'Show SmartErrorDialog directly',
+            demo: Row(children: [
+              Expanded(
+                  child: GradientButton(
+                label: 'Connection',
+                icon: Icons.wifi_off_rounded,
+                gradient: LinearGradient(colors: [
+                  AppColors.warning,
+                  AppColors.warning.withValues(alpha: 0.8)
+                ]),
+                onPressed: () => _showDirectDialog(
+                    const ConnectionException('No internet connection')),
+              )),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: GradientButton(
+                label: 'Server Error',
+                icon: Icons.cloud_off_rounded,
+                gradient: LinearGradient(colors: [
+                  AppColors.error,
+                  AppColors.error.withValues(alpha: 0.8)
+                ]),
+                onPressed: () => _showDirectDialog(const ResponseException(
+                    message: 'Internal Server Error', statusCode: 500)),
+              )),
+            ]),
+            code: '''showDialog(
+  context: context,
+  builder: (_) => SmartErrorDialog(
+    exception: ConnectionException('No internet'),
+  ),
+);''',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _triggerSnackBarError() async {
+    await SmartExecuter.run(
+      request: () => _dio.get('/posts/invalid-path-snackbar'),
+      context: context,
+      viewType: ErrorViewType.snackBar,
+    );
+  }
+
+  Future<void> _triggerDialogError() async {
+    await SmartExecuter.run(
+      request: () => _dio.get('/posts/invalid-path-dialog'),
+      context: context,
+      viewType: ErrorViewType.dialog,
+    );
+  }
+
+  void _showDirectDialog(SmartException exception) {
+    showDialog(
+      context: context,
+      builder: (_) => SmartErrorDialog(exception: exception),
     );
   }
 }

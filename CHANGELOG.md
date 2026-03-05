@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Per-exception-type icons, colors, and titles
   - Rounded corners with styled action button
 
+- **SmartExceptionType enum**: New `SmartExceptionType` enum for convenient exception type identification
+  - Each `SmartException` subclass now has an `exceptionType` getter
+  - Enables simple type checking without pattern matching: `exception.exceptionType == SmartExceptionType.connection`
+
 - **Enhanced SmartErrorSnackBar**: Upgraded default design
   - Distinct icons per error type (`wifi_off`, `timer_off`, `upload`, `download`, `cancel`, `cloud_off`, `lock_outline`, `error_outline`)
   - Improved rounded corners and elevation

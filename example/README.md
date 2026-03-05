@@ -19,6 +19,7 @@ This example demonstrates how to use the Smart Executer package.
 - **Basic Usage**: Run operations with loading dialog or in background
 - **Result Pattern**: Type-safe success/failure handling
 - **Error Handling**: Simulate various error scenarios
+- **Error Views**: Display errors as SnackBars or Dialogs with `ErrorViewType`
 - **Callbacks**: Use callbacks for success and error handling
 - **Connectivity**: Check network status and conditionally run requests
 - **Snack Bars**: Show success, error, and custom snack bars
@@ -31,7 +32,6 @@ This example demonstrates how to use the Smart Executer package.
 SmartExecuterConfig.initialize(
   enableLogging: kDebugMode,
   defaultErrorMessage: 'Something went wrong. Please try again.',
-  maxRetries: 2,
 );
 ```
 
@@ -39,8 +39,19 @@ SmartExecuterConfig.initialize(
 
 ```dart
 final result = await SmartExecuter.run(
-  () => dio.get('/posts/1'),
+  request: () => dio.get('/posts/1'),
   context: context,
+);
+```
+
+### Error View Types
+
+```dart
+// Show errors as a dialog instead of snackbar
+await SmartExecuter.run(
+  request: () => dio.get('/posts/1'),
+  context: context,
+  viewType: ErrorViewType.dialog,
 );
 ```
 
@@ -56,6 +67,7 @@ switch (result) {
     print('Got: ${data.data}');
   case Failure(:final exception):
     print('Error: ${exception.message}');
+    print('Type: ${exception.exceptionType}');
 }
 ```
 
@@ -63,7 +75,7 @@ switch (result) {
 
 ```dart
 await SmartExecuter.run(
-  () => dio.get('/posts/1'),
+  request: () => dio.get('/posts/1'),
   context: context,
   onSuccess: (response) async {
     print('Success!');
