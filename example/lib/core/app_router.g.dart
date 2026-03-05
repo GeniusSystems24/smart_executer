@@ -86,6 +86,14 @@ RouteBase get $homeRoute => GoRouteData.$route(
           path: 'examples/crud',
           factory: $CrudOperationsRoute._fromState,
         ),
+        GoRouteData.$route(
+          path: 'examples/snackbar-builder',
+          factory: $SnackBarErrorBuilderRoute._fromState,
+        ),
+        GoRouteData.$route(
+          path: 'examples/dialog-builder',
+          factory: $DialogErrorBuilderRoute._fromState,
+        ),
       ],
     );
 
@@ -547,6 +555,52 @@ mixin $CrudOperationsRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
         '/examples/crud',
+      );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SnackBarErrorBuilderRoute on GoRouteData {
+  static SnackBarErrorBuilderRoute _fromState(GoRouterState state) =>
+      const SnackBarErrorBuilderRoute();
+
+  @override
+  String get location => GoRouteData.$location(
+        '/examples/snackbar-builder',
+      );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $DialogErrorBuilderRoute on GoRouteData {
+  static DialogErrorBuilderRoute _fromState(GoRouterState state) =>
+      const DialogErrorBuilderRoute();
+
+  @override
+  String get location => GoRouteData.$location(
+        '/examples/dialog-builder',
       );
 
   @override

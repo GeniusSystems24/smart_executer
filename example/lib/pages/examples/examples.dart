@@ -16,3 +16,7 @@ export 'connectivity/offline_mode_page.dart';
 
 // Data Management
 export 'data_management/crud_operations_page.dart';
+
+// Error Builders
+export 'error_builders/snackbar_error_builder_page.dart';
+export 'error_builders/dialog_error_builder_page.dart';

@@ -161,6 +161,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           isNew: true,
           onTap: () => context.goToSkeletonLoading(),
         ),
+        // Error Builders
+        _ExampleItem(
+          title: 'SnackBar Builder',
+          description: 'Custom per-type SnackBar error builders',
+          icon: Icons.notifications_rounded,
+          gradient: const LinearGradient(
+              colors: [Color(0xFF667EEA), Color(0xFF764BA2)]),
+          category: 'UI Patterns',
+          isNew: true,
+          onTap: () => context.goToSnackBarErrorBuilder(),
+        ),
+        _ExampleItem(
+          title: 'Dialog Builder',
+          description: 'Custom per-type Dialog error builders',
+          icon: Icons.picture_in_picture_alt_rounded,
+          gradient: const LinearGradient(
+              colors: [Color(0xFFE91E63), Color(0xFF9C27B0)]),
+          category: 'UI Patterns',
+          isNew: true,
+          onTap: () => context.goToDialogErrorBuilder(),
+        ),
         // Data Management
         _ExampleItem(
           title: 'CRUD Operations',

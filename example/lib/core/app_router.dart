@@ -48,6 +48,9 @@ part 'app_router.g.dart';
     TypedGoRoute<OfflineModeRoute>(path: 'examples/offline'),
     // Data Management
     TypedGoRoute<CrudOperationsRoute>(path: 'examples/crud'),
+    // Error Builders
+    TypedGoRoute<SnackBarErrorBuilderRoute>(path: 'examples/snackbar-builder'),
+    TypedGoRoute<DialogErrorBuilderRoute>(path: 'examples/dialog-builder'),
   ],
 )
 class HomeRoute extends GoRouteData with $HomeRoute {
@@ -276,6 +279,24 @@ class CrudOperationsRoute extends GoRouteData with $CrudOperationsRoute {
       const CrudOperationsPage();
 }
 
+/// SnackBar Error Builder Route
+class SnackBarErrorBuilderRoute extends GoRouteData
+    with $SnackBarErrorBuilderRoute {
+  const SnackBarErrorBuilderRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SnackBarErrorBuilderPage();
+}
+
+/// Dialog Error Builder Route
+class DialogErrorBuilderRoute extends GoRouteData
+    with $DialogErrorBuilderRoute {
+  const DialogErrorBuilderRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const DialogErrorBuilderPage();
+}
+
 // ============================================================================
 // Router Configuration
 // ============================================================================
@@ -445,6 +466,14 @@ extension RouterLocationX on BuildContext {
 
   /// Navigate to CRUD Operations Example
   void goToCrudOperations() => const CrudOperationsRoute().go(this);
+
+  /// Navigate to SnackBar Error Builder Example
+  void goToSnackBarErrorBuilder() =>
+      const SnackBarErrorBuilderRoute().go(this);
+
+  /// Navigate to Dialog Error Builder Example
+  void goToDialogErrorBuilder() =>
+      const DialogErrorBuilderRoute().go(this);
 }
 
 // ============================================================================
