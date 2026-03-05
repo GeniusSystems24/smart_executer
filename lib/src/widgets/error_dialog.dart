@@ -47,8 +47,10 @@ class SmartErrorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = _getColor(exception);
-    final icon = _getIcon(exception);
+    var exception3 = exception;
+    final color = exception3.exceptionType.color;
+    var exception2 = exception;
+    final icon = exception2.exceptionType.icon;
     final title = customTitle ?? _getTitle(exception);
     final message = customMessage ?? exception.message;
 
@@ -123,32 +125,6 @@ class SmartErrorDialog extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static Color _getColor(SmartException exception) {
-    return switch (exception.exceptionType) {
-      SmartExceptionType.connection => const Color(0xFFFF9800),
-      SmartExceptionType.connectionTimeout => const Color(0xFFFF5722),
-      SmartExceptionType.sendTimeout => const Color(0xFFFF5722),
-      SmartExceptionType.receiveTimeout => const Color(0xFFFF5722),
-      SmartExceptionType.cancelled => const Color(0xFF78909C),
-      SmartExceptionType.response => const Color(0xFFF44336),
-      SmartExceptionType.sessionExpired => const Color(0xFF1976D2),
-      SmartExceptionType.unknown => const Color(0xFFF44336),
-    };
-  }
-
-  static IconData _getIcon(SmartException exception) {
-    return switch (exception.exceptionType) {
-      SmartExceptionType.connection => Icons.wifi_off_rounded,
-      SmartExceptionType.connectionTimeout => Icons.timer_off_rounded,
-      SmartExceptionType.sendTimeout => Icons.upload_rounded,
-      SmartExceptionType.receiveTimeout => Icons.download_rounded,
-      SmartExceptionType.cancelled => Icons.cancel_rounded,
-      SmartExceptionType.response => Icons.cloud_off_rounded,
-      SmartExceptionType.sessionExpired => Icons.lock_outline_rounded,
-      SmartExceptionType.unknown => Icons.error_outline_rounded,
-    };
   }
 
   static String _getTitle(SmartException exception) {

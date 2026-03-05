@@ -5,6 +5,9 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
+
 
 /// Identifies the type of a [SmartException] without pattern matching.
 ///
@@ -28,28 +31,34 @@ import 'package:dio/dio.dart';
 /// ```
 enum SmartExceptionType {
   /// Corresponds to [ConnectionException].
-  connection,
+  connection(color: Color(0xFFFF9800), icon: Icons.wifi_off_rounded),
 
   /// Corresponds to [ConnectionTimeoutException].
-  connectionTimeout,
+  connectionTimeout(
+      color: Color(0xFFFF5722), icon: Icons.timer_off_rounded),
 
   /// Corresponds to [SendTimeoutException].
-  sendTimeout,
+  sendTimeout(color: Color(0xFFFF5722), icon: Icons.upload_rounded),
 
   /// Corresponds to [ReceiveTimeoutException].
-  receiveTimeout,
+  receiveTimeout(color: Color(0xFFFF5722), icon: Icons.download_rounded),
 
   /// Corresponds to [CancelledException].
-  cancelled,
+  cancelled(color: Color(0xFF78909C), icon: Icons.cancel_rounded),
 
   /// Corresponds to [ResponseException].
-  response,
+  response(color: Color(0xFFF44336), icon: Icons.cloud_off_rounded),
 
   /// Corresponds to [SessionExpiredException].
-  sessionExpired,
+  sessionExpired(
+      color: Color(0xFF1976D2), icon: Icons.lock_outline_rounded),
 
   /// Corresponds to [UnknownException].
-  unknown,
+  unknown(color: Color(0xFFF44336), icon: Icons.error_outline_rounded);
+
+  final Color color;
+  final IconData icon;
+  const SmartExceptionType({required this.color, required this.icon});
 }
 
 /// Metadata that can be attached to exceptions for debugging and logging.
