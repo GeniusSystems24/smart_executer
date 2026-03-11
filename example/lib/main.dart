@@ -9,10 +9,10 @@ void main() {
   // Initialize SmartExecuter configuration
   SmartExecuterConfig.initialize(
     enableLogging: kDebugMode,
-    defaultErrorMessage: 'Something went wrong. Please try again.',
-    noConnectionMessage: 'No internet connection. Please check your network.',
-    sessionExpiredMessage: 'Your session has expired. Please sign in again.',
-    sessionExpiredTitle: 'Session Expired',
+    defaultErrorMessage: () => 'Something went wrong. Please try again.',
+    noConnectionMessage: () => 'No internet connection. Please check your network.',
+    sessionExpiredMessage: () => 'Your session has expired. Please sign in again.',
+    sessionExpiredTitle: () => 'Session Expired',
     checkConnectionByDefault: false,
     globalErrorHandler: (exception) async {
       debugPrint(

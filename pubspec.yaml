@@ -1,6 +1,6 @@
 name: smart_executer
 description: A powerful Flutter package for executing async operations with built-in error handling, loading dialogs, retry logic, and Result pattern support.
-version: 2.1.0
+version: 2.2.0
 homepage: https://github.com/GeniusSystems24/smart_executer
 repository: https://github.com/GeniusSystems24/smart_executer
 issue_tracker: https://github.com/GeniusSystems24/smart_executer/issues

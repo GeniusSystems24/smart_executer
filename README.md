@@ -31,7 +31,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^2.1.0
+  smart_executer: ^2.2.0
 ```
 
 Then run:
@@ -50,8 +50,8 @@ Configure SmartExecuter globally in your `main.dart`:
 void main() {
   SmartExecuterConfig.initialize(
     enableLogging: true,
-    defaultErrorMessage: 'Something went wrong. Please try again.',
-    noConnectionMessage: 'No internet connection',
+    defaultErrorMessage: () => 'Something went wrong. Please try again.',
+    noConnectionMessage: () => 'No internet connection',
   );
   runApp(const MyApp());
 }
@@ -374,11 +374,13 @@ SmartExecuterConfig.initialize(
     navigatorKey.currentState?.pushReplacementNamed('/login');
   },
 
-  // Messages
-  defaultErrorMessage: 'An error occurred',
-  noConnectionMessage: 'No internet connection',
-  sessionExpiredMessage: 'Your session has expired',
-  sessionExpiredTitle: 'Session Expired',
+  // Messages — use String Function() for dynamic/localized strings
+  defaultErrorMessage: () => 'An error occurred',
+  noConnectionMessage: () => 'No internet connection',
+  sessionExpiredMessage: () => 'Your session has expired',
+  sessionExpiredTitle: () => 'Session Expired',
+  // Or with localization (resolved at error time):
+  // noConnectionMessage: () => AppLocalizations.of(navigatorKey.currentContext!)!.noConnection,
 
   // Connection checking
   checkConnectionByDefault: false,

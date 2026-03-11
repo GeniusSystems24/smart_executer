@@ -23,6 +23,15 @@ typedef SessionExpiredDialogBuilder = Widget Function(
   VoidCallback onConfirm,
 );
 
+/// A function that returns a [String] at call time.
+///
+/// Used for message fields in [SmartExecuterConfig] so that messages can be
+/// resolved dynamically — for example, reading from a localization delegate:
+/// ```dart
+/// defaultErrorMessage: () => AppLocalizations.of(context)!.errorMessage,
+/// ```
+typedef MessageBuilder = String Function();
+
 /// Global configuration for SmartExecuter.
 ///
 /// Configure SmartExecuter once at app startup:
@@ -41,7 +50,10 @@ typedef SessionExpiredDialogBuilder = Widget Function(
 ///         content: Text(exception.message),
 ///       ),
 ///     ),
-///     defaultErrorMessage: 'Something went wrong',
+///     // Static string
+///     defaultErrorMessage: () => 'Something went wrong',
+///     // Or dynamic / localized string
+///     noConnectionMessage: () => AppLocalizations.of(ctx)!.noConnection,
 ///     enableLogging: true,
 ///   );
 ///   runApp(MyApp());
@@ -68,10 +80,10 @@ final class SmartExecuterConfig {
     SessionExpiredDialogBuilder? sessionExpiredDialogBuilder,
     ErrorCallback? globalErrorHandler,
     SessionExpiredCallback? onSessionExpired,
-    String? defaultErrorMessage,
-    String? noConnectionMessage,
-    String? sessionExpiredMessage,
-    String? sessionExpiredTitle,
+    MessageBuilder? defaultErrorMessage,
+    MessageBuilder? noConnectionMessage,
+    MessageBuilder? sessionExpiredMessage,
+    MessageBuilder? sessionExpiredTitle,
     bool enableLogging = false,
     Duration? defaultTimeout,
     bool checkConnectionByDefault = false,
@@ -104,10 +116,10 @@ final class SmartExecuterConfig {
   SessionExpiredDialogBuilder? _sessionExpiredDialogBuilder;
   ErrorCallback? _globalErrorHandler;
   SessionExpiredCallback? _onSessionExpired;
-  String? _defaultErrorMessage;
-  String? _noConnectionMessage;
-  String? _sessionExpiredMessage;
-  String? _sessionExpiredTitle;
+  MessageBuilder? _defaultErrorMessage;
+  MessageBuilder? _noConnectionMessage;
+  MessageBuilder? _sessionExpiredMessage;
+  MessageBuilder? _sessionExpiredTitle;
   bool _enableLogging = false;
   Duration? _defaultTimeout;
   bool _checkConnectionByDefault = false;
@@ -136,20 +148,29 @@ final class SmartExecuterConfig {
   SessionExpiredCallback? get onSessionExpired => _onSessionExpired;
 
   /// Default error message when no specific message is available.
+  ///
+  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
   String get defaultErrorMessage =>
-      _defaultErrorMessage ?? 'An error occurred. Please try again.';
+      _defaultErrorMessage?.call() ?? 'An error occurred. Please try again.';
 
   /// Message shown when there is no internet connection.
+  ///
+  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
   String get noConnectionMessage =>
-      _noConnectionMessage ?? 'No internet connection';
+      _noConnectionMessage?.call() ?? 'No internet connection';
 
   /// Message shown when the session has expired.
+  ///
+  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
   String get sessionExpiredMessage =>
-      _sessionExpiredMessage ??
+      _sessionExpiredMessage?.call() ??
       'Your session has expired. Please sign in again.';
 
   /// Title for the session expired dialog.
-  String get sessionExpiredTitle => _sessionExpiredTitle ?? 'Session Expired';
+  ///
+  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
+  String get sessionExpiredTitle =>
+      _sessionExpiredTitle?.call() ?? 'Session Expired';
 
   /// Whether to enable logging for debugging.
   bool get enableLogging => _enableLogging;

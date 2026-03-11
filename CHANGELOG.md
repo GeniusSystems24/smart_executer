@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-03-11
+
+### Changed
+
+- **BREAKING**: `defaultErrorMessage`, `noConnectionMessage`, `sessionExpiredTitle`, `sessionExpiredMessage` in `SmartExecuterConfig.initialize()` are now `String Function()` (`MessageBuilder`) instead of `String`
+  - Enables dynamic / localized messages resolved at the time the error occurs
+  - Migrate: `defaultErrorMessage: 'msg'` → `defaultErrorMessage: () => 'msg'`
+  - Localization example: `noConnectionMessage: () => AppLocalizations.of(ctx)!.noConnection`
+  - Getters (`config.noConnectionMessage`, etc.) still return `String` — no changes needed in call sites
+
+### Added
+
+- **`MessageBuilder` typedef** (`String Function()`) — new type alias used by the four message fields above
+
 ## [2.1.0] - 2026-03-05
 
 ### Added
