@@ -23,14 +23,14 @@ typedef SessionExpiredDialogBuilder = Widget Function(
   VoidCallback onConfirm,
 );
 
-/// A function that returns a [String] at call time.
+/// A function that returns a [String] given a [BuildContext].
 ///
 /// Used for message fields in [SmartExecuterConfig] so that messages can be
 /// resolved dynamically — for example, reading from a localization delegate:
 /// ```dart
-/// defaultErrorMessage: () => AppLocalizations.of(context)!.errorMessage,
+/// defaultErrorMessage: (context) => AppLocalizations.of(context)!.errorMessage,
 /// ```
-typedef MessageBuilder = String Function();
+typedef MessageBuilder = String Function(BuildContext context);
 
 /// Global configuration for SmartExecuter.
 ///
@@ -51,9 +51,9 @@ typedef MessageBuilder = String Function();
 ///       ),
 ///     ),
 ///     // Static string
-///     defaultErrorMessage: () => 'Something went wrong',
+///     defaultErrorMessage: (_) => 'Something went wrong',
 ///     // Or dynamic / localized string
-///     noConnectionMessage: () => AppLocalizations.of(ctx)!.noConnection,
+///     noConnectionMessage: (context) => AppLocalizations.of(context)!.noConnection,
 ///     enableLogging: true,
 ///   );
 ///   runApp(MyApp());
@@ -149,28 +149,29 @@ final class SmartExecuterConfig {
 
   /// Default error message when no specific message is available.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get defaultErrorMessage =>
-      _defaultErrorMessage?.call() ?? 'An error occurred. Please try again.';
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String defaultErrorMessage(BuildContext context) =>
+      _defaultErrorMessage?.call(context) ??
+      'An error occurred. Please try again.';
 
   /// Message shown when there is no internet connection.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get noConnectionMessage =>
-      _noConnectionMessage?.call() ?? 'No internet connection';
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String noConnectionMessage(BuildContext context) =>
+      _noConnectionMessage?.call(context) ?? 'No internet connection';
 
   /// Message shown when the session has expired.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get sessionExpiredMessage =>
-      _sessionExpiredMessage?.call() ??
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String sessionExpiredMessage(BuildContext context) =>
+      _sessionExpiredMessage?.call(context) ??
       'Your session has expired. Please sign in again.';
 
   /// Title for the session expired dialog.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get sessionExpiredTitle =>
-      _sessionExpiredTitle?.call() ?? 'Session Expired';
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String sessionExpiredTitle(BuildContext context) =>
+      _sessionExpiredTitle?.call(context) ?? 'Session Expired';
 
   /// Whether to enable logging for debugging.
   bool get enableLogging => _enableLogging;

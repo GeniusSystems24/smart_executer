@@ -11,7 +11,7 @@
 /// void main() {
 ///   SmartExecuterConfig.initialize(
 ///     enableLogging: true,
-///     defaultErrorMessage: 'Something went wrong',
+///     defaultErrorMessage: (_) => 'Something went wrong',
 ///   );
 ///   runApp(MyApp());
 /// }

@@ -401,7 +401,7 @@ abstract final class SmartExecuter {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
         final exception = ConnectionException(
-          config.noConnectionMessage,
+          config.noConnectionMessage(context),
           null,
           null,
           metadata,
@@ -512,7 +512,7 @@ abstract final class SmartExecuter {
       final hasConnection = await ConnectivityChecker.hasConnection();
       if (!hasConnection) {
         final exception = ConnectionException(
-          config.noConnectionMessage,
+          config.noConnectionMessage(context),
           null,
           null,
           metadata,
@@ -709,8 +709,8 @@ abstract final class SmartExecuter {
             );
           }
           return AlertDialog(
-            title: Text(config.sessionExpiredTitle),
-            content: Text(config.sessionExpiredMessage),
+            title: Text(config.sessionExpiredTitle(dialogContext)),
+            content: Text(config.sessionExpiredMessage(dialogContext)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
