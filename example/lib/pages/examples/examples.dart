@@ -20,3 +20,5 @@ export 'data_management/crud_operations_page.dart';
 // Error Builders
 export 'error_builders/snackbar_error_builder_page.dart';
 export 'error_builders/dialog_error_builder_page.dart';
+export 'error_builders/scaffold_key_page.dart';
+export 'error_builders/exception_builder_page.dart';

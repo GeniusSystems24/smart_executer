@@ -197,6 +197,36 @@ final List<ExampleCategory> exampleCategories = [
     ],
   ),
   ExampleCategory(
+    title: 'Error Builders',
+    subtitle: 'Customize error display and mapping',
+    icon: Icons.build_rounded,
+    color: const Color(0xFFE91E63),
+    examples: [
+      ExampleItem(
+          title: 'SnackBar Builder',
+          description: 'Per-type SnackBar error builders',
+          icon: Icons.notifications_rounded,
+          route: '/examples/snackbar-builder'),
+      ExampleItem(
+          title: 'Dialog Builder',
+          description: 'Per-type Dialog error builders',
+          icon: Icons.chat_bubble_rounded,
+          route: '/examples/dialog-builder'),
+      ExampleItem(
+          title: 'Scaffold Key',
+          description: 'Control SnackBar display target',
+          icon: Icons.vpn_key_rounded,
+          route: '/examples/scaffold-key',
+          isNew: true),
+      ExampleItem(
+          title: 'Exception Builder',
+          description: 'Custom error-to-exception mapping',
+          icon: Icons.build_circle_rounded,
+          route: '/examples/exception-builder',
+          isNew: true),
+    ],
+  ),
+  ExampleCategory(
     title: 'Advanced Patterns',
     subtitle: 'Complex execution patterns',
     icon: Icons.architecture_rounded,

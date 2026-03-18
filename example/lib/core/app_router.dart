@@ -51,6 +51,8 @@ part 'app_router.g.dart';
     // Error Builders
     TypedGoRoute<SnackBarErrorBuilderRoute>(path: 'examples/snackbar-builder'),
     TypedGoRoute<DialogErrorBuilderRoute>(path: 'examples/dialog-builder'),
+    TypedGoRoute<ScaffoldKeyRoute>(path: 'examples/scaffold-key'),
+    TypedGoRoute<ExceptionBuilderRoute>(path: 'examples/exception-builder'),
   ],
 )
 class HomeRoute extends GoRouteData with $HomeRoute {
@@ -297,6 +299,22 @@ class DialogErrorBuilderRoute extends GoRouteData
       const DialogErrorBuilderPage();
 }
 
+/// Scaffold Key Route
+class ScaffoldKeyRoute extends GoRouteData with $ScaffoldKeyRoute {
+  const ScaffoldKeyRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ScaffoldKeyPage();
+}
+
+/// Exception Builder Route
+class ExceptionBuilderRoute extends GoRouteData with $ExceptionBuilderRoute {
+  const ExceptionBuilderRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ExceptionBuilderPage();
+}
+
 // ============================================================================
 // Router Configuration
 // ============================================================================
@@ -474,6 +492,12 @@ extension RouterLocationX on BuildContext {
   /// Navigate to Dialog Error Builder Example
   void goToDialogErrorBuilder() =>
       const DialogErrorBuilderRoute().go(this);
+
+  /// Navigate to Scaffold Key Example
+  void goToScaffoldKey() => const ScaffoldKeyRoute().go(this);
+
+  /// Navigate to Exception Builder Example
+  void goToExceptionBuilder() => const ExceptionBuilderRoute().go(this);
 }
 
 // ============================================================================

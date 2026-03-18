@@ -295,6 +295,80 @@ await SmartExecuter.run(
 
 Resolution order: **per-operation builder → global config builder → package default**.
 
+### Scaffold Key
+
+By default, `ScaffoldMessenger.of(context)` is used to show SnackBars. If the calling context is not under a `ScaffoldMessenger`, you can provide a `GlobalKey<ScaffoldState>` to control where SnackBars are displayed.
+
+**Global configuration:**
+
+```dart
+final scaffoldKey = GlobalKey<ScaffoldState>();
+
+SmartExecuterConfig.initialize(
+  scaffoldKey: scaffoldKey,
+);
+```
+
+**Per-operation override:**
+
+```dart
+final pageScaffoldKey = GlobalKey<ScaffoldState>();
+
+await SmartExecuter.run(
+  request: () => apiService.getUser(id),
+  context: context,
+  scaffoldKey: pageScaffoldKey,
+);
+```
+
+Resolution order: **per-operation scaffoldKey → global config scaffoldKey → `ScaffoldMessenger.of(context)`**.
+
+### Custom Exception Builder
+
+Override how errors are mapped to `SmartException` instances. The builder receives the original error, stack trace, and operation metadata. Return a `SmartException` to use it, or `null` to fall back to the default `ExceptionMapper`.
+
+```dart
+SmartExecuterConfig.initialize(
+  exceptionBuilder: (error, stackTrace, metadata) {
+    // Custom mapping for specific status codes
+    if (error is DioException) {
+      final statusCode = error.response?.statusCode;
+      final responseData = error.response?.data;
+
+      if (statusCode == 403) {
+        return ResponseException(
+          message: 'You do not have permission to perform this action',
+          statusCode: 403,
+          responseData: responseData,
+          cause: error,
+          stackTrace: stackTrace,
+          metadata: metadata,
+        );
+      }
+
+      // Parse server error messages
+      if (statusCode != null && statusCode >= 400) {
+        final serverMessage = responseData is Map
+            ? responseData['message'] as String?
+            : null;
+        if (serverMessage != null) {
+          return ResponseException(
+            message: serverMessage,
+            statusCode: statusCode,
+            responseData: responseData,
+            cause: error,
+            stackTrace: stackTrace,
+            metadata: metadata,
+          );
+        }
+      }
+    }
+
+    return null; // use default ExceptionMapper
+  },
+);
+```
+
 ### Stream Operations with Progress
 
 ```dart
@@ -384,6 +458,21 @@ SmartExecuterConfig.initialize(
 
   // Default error view type for all operations
   defaultViewType: ErrorViewType.snackBar,
+
+  // Scaffold key for SnackBar display control
+  scaffoldKey: scaffoldKey,
+
+  // Custom exception builder
+  exceptionBuilder: (error, stackTrace, metadata) {
+    if (error is DioException && error.response?.statusCode == 403) {
+      return ResponseException(
+        message: 'Access denied',
+        statusCode: 403,
+        metadata: metadata,
+      );
+    }
+    return null; // fall back to default mapping
+  },
 
   // Connection checking
   checkConnectionByDefault: false,
