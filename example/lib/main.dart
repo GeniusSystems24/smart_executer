@@ -13,6 +13,7 @@ void main() {
     noConnectionMessage: (_) => 'No internet connection. Please check your network.',
     sessionExpiredMessage: (_) => 'Your session has expired. Please sign in again.',
     sessionExpiredTitle: (_) => 'Session Expired',
+    defaultViewType: ErrorViewType.snackBar,
     checkConnectionByDefault: false,
     globalErrorHandler: (exception) async {
       debugPrint(

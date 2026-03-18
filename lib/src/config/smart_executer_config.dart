@@ -87,6 +87,7 @@ final class SmartExecuterConfig {
     bool enableLogging = false,
     Duration? defaultTimeout,
     bool checkConnectionByDefault = false,
+    ErrorViewType defaultViewType = ErrorViewType.snackBar,
   }) {
     final config = instance;
     config._loadingDialogBuilder = loadingDialogBuilder;
@@ -102,6 +103,7 @@ final class SmartExecuterConfig {
     config._enableLogging = enableLogging;
     config._defaultTimeout = defaultTimeout;
     config._checkConnectionByDefault = checkConnectionByDefault;
+    config._defaultViewType = defaultViewType;
   }
 
   /// Resets the configuration to defaults.
@@ -123,6 +125,7 @@ final class SmartExecuterConfig {
   bool _enableLogging = false;
   Duration? _defaultTimeout;
   bool _checkConnectionByDefault = false;
+  ErrorViewType _defaultViewType = ErrorViewType.snackBar;
 
   /// Builder for creating loading dialogs.
   LoadingDialogBuilder? get loadingDialogBuilder => _loadingDialogBuilder;
@@ -182,6 +185,11 @@ final class SmartExecuterConfig {
 
   /// Whether to check connection before requests by default.
   bool get checkConnectionByDefault => _checkConnectionByDefault;
+
+  /// Default [ErrorViewType] used when no `viewType` is specified per-operation.
+  ///
+  /// Defaults to [ErrorViewType.snackBar].
+  ErrorViewType get defaultViewType => _defaultViewType;
 }
 
 /// Options for individual SmartExecuter operations.

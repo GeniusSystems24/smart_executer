@@ -382,6 +382,9 @@ SmartExecuterConfig.initialize(
   // Or with localization (context provided at error time):
   // noConnectionMessage: (context) => AppLocalizations.of(context)!.noConnection,
 
+  // Default error view type for all operations
+  defaultViewType: ErrorViewType.snackBar,
+
   // Connection checking
   checkConnectionByDefault: false,
 

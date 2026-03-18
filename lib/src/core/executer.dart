@@ -108,11 +108,12 @@ abstract final class SmartExecuter {
     String? operationName,
     Map<String, dynamic>? metadata,
     BuildContext? context,
-    ErrorViewType viewType = ErrorViewType.snackBar,
+    ErrorViewType? viewType,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
   }) async {
     final config = SmartExecuterConfig.instance;
+    final effectiveViewType = viewType ?? config.defaultViewType;
 
     // Create metadata for exceptions
     final exceptionMetadata = ExceptionMetadata(
@@ -133,7 +134,7 @@ abstract final class SmartExecuter {
         );
         await config.globalErrorHandler?.call(exception);
         if (context != null && context.mounted) {
-          _showError(context, exception, viewType,
+          _showError(context, exception, effectiveViewType,
               snackBarErrorBuilder: snackBarErrorBuilder,
               dialogErrorBuilder: dialogErrorBuilder);
         }
@@ -149,7 +150,7 @@ abstract final class SmartExecuter {
       _logError('DioException', e, stackTrace, exceptionMetadata);
       await config.globalErrorHandler?.call(exception);
       if (context != null && context.mounted) {
-        _showError(context, exception, viewType,
+        _showError(context, exception, effectiveViewType,
             snackBarErrorBuilder: snackBarErrorBuilder,
             dialogErrorBuilder: dialogErrorBuilder);
       }
@@ -160,7 +161,7 @@ abstract final class SmartExecuter {
       _logError('Exception', e, stackTrace, exceptionMetadata);
       await config.globalErrorHandler?.call(exception);
       if (context != null && context.mounted) {
-        _showError(context, exception, viewType,
+        _showError(context, exception, effectiveViewType,
             snackBarErrorBuilder: snackBarErrorBuilder,
             dialogErrorBuilder: dialogErrorBuilder);
       }
@@ -188,7 +189,7 @@ abstract final class SmartExecuter {
   static Future<T?> run<T extends Object>({
     required Future<T?> Function() request,
     required BuildContext context,
-    ErrorViewType viewType = ErrorViewType.snackBar,
+    ErrorViewType? viewType,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -206,7 +207,7 @@ abstract final class SmartExecuter {
     return _executeWithUI<T>(
       request: request,
       context: context,
-      viewType: viewType,
+      viewType: viewType ?? SmartExecuterConfig.instance.defaultViewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
@@ -239,7 +240,7 @@ abstract final class SmartExecuter {
   static Future<T?> inBackground<T extends Object>({
     required Future<T?> Function() request,
     required BuildContext context,
-    ErrorViewType viewType = ErrorViewType.snackBar,
+    ErrorViewType? viewType,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -257,7 +258,7 @@ abstract final class SmartExecuter {
     return _executeWithUI<T>(
       request: request,
       context: context,
-      viewType: viewType,
+      viewType: viewType ?? SmartExecuterConfig.instance.defaultViewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
@@ -293,7 +294,7 @@ abstract final class SmartExecuter {
   static Future<T?> runStream<T extends Object>({
     required Stream<T?> Function() requestStream,
     required BuildContext context,
-    ErrorViewType viewType = ErrorViewType.snackBar,
+    ErrorViewType? viewType,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -312,7 +313,7 @@ abstract final class SmartExecuter {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
       context: context,
-      viewType: viewType,
+      viewType: viewType ?? SmartExecuterConfig.instance.defaultViewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
@@ -336,7 +337,7 @@ abstract final class SmartExecuter {
   static Future<T?> inBackgroundStream<T extends Object>({
     required Stream<T?> Function() requestStream,
     required BuildContext context,
-    ErrorViewType viewType = ErrorViewType.snackBar,
+    ErrorViewType? viewType,
     VoidAsyncCallback? onCancel,
     VoidAsyncCallback? onConnectionError,
     VoidAsyncCallback? onConnectTimeout,
@@ -354,7 +355,7 @@ abstract final class SmartExecuter {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
       context: context,
-      viewType: viewType,
+      viewType: viewType ?? SmartExecuterConfig.instance.defaultViewType,
       onCancel: onCancel,
       onConnectionError: onConnectionError,
       onConnectTimeout: onConnectTimeout,
