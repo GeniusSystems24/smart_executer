@@ -88,6 +88,7 @@ final class SmartExecuterConfig {
     Duration? defaultTimeout,
     bool checkConnectionByDefault = false,
     ErrorViewType defaultViewType = ErrorViewType.snackBar,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) {
     final config = instance;
     config._loadingDialogBuilder = loadingDialogBuilder;
@@ -104,6 +105,7 @@ final class SmartExecuterConfig {
     config._defaultTimeout = defaultTimeout;
     config._checkConnectionByDefault = checkConnectionByDefault;
     config._defaultViewType = defaultViewType;
+    config._scaffoldKey = scaffoldKey;
   }
 
   /// Resets the configuration to defaults.
@@ -126,6 +128,7 @@ final class SmartExecuterConfig {
   Duration? _defaultTimeout;
   bool _checkConnectionByDefault = false;
   ErrorViewType _defaultViewType = ErrorViewType.snackBar;
+  GlobalKey<ScaffoldState>? _scaffoldKey;
 
   /// Builder for creating loading dialogs.
   LoadingDialogBuilder? get loadingDialogBuilder => _loadingDialogBuilder;
@@ -190,6 +193,13 @@ final class SmartExecuterConfig {
   ///
   /// Defaults to [ErrorViewType.snackBar].
   ErrorViewType get defaultViewType => _defaultViewType;
+
+  /// Global [ScaffoldState] key for displaying [SnackBar]s.
+  ///
+  /// When provided, [ScaffoldMessenger] will use this key's context
+  /// instead of the caller's [BuildContext]. This is useful when the
+  /// calling widget's context is not under a [ScaffoldMessenger].
+  GlobalKey<ScaffoldState>? get scaffoldKey => _scaffoldKey;
 }
 
 /// Options for individual SmartExecuter operations.

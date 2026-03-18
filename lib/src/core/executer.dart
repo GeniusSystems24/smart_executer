@@ -111,9 +111,11 @@ abstract final class SmartExecuter {
     ErrorViewType? viewType,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     final config = SmartExecuterConfig.instance;
     final effectiveViewType = viewType ?? config.defaultViewType;
+    final effectiveScaffoldKey = scaffoldKey ?? config.scaffoldKey;
 
     // Create metadata for exceptions
     final exceptionMetadata = ExceptionMetadata(
@@ -136,7 +138,8 @@ abstract final class SmartExecuter {
         if (context != null && context.mounted) {
           _showError(context, exception, effectiveViewType,
               snackBarErrorBuilder: snackBarErrorBuilder,
-              dialogErrorBuilder: dialogErrorBuilder);
+              dialogErrorBuilder: dialogErrorBuilder,
+              scaffoldKey: effectiveScaffoldKey);
         }
         return Failure(exception);
       }
@@ -152,7 +155,8 @@ abstract final class SmartExecuter {
       if (context != null && context.mounted) {
         _showError(context, exception, effectiveViewType,
             snackBarErrorBuilder: snackBarErrorBuilder,
-            dialogErrorBuilder: dialogErrorBuilder);
+            dialogErrorBuilder: dialogErrorBuilder,
+            scaffoldKey: effectiveScaffoldKey);
       }
       return Failure(exception);
     } catch (e, stackTrace) {
@@ -163,7 +167,8 @@ abstract final class SmartExecuter {
       if (context != null && context.mounted) {
         _showError(context, exception, effectiveViewType,
             snackBarErrorBuilder: snackBarErrorBuilder,
-            dialogErrorBuilder: dialogErrorBuilder);
+            dialogErrorBuilder: dialogErrorBuilder,
+            scaffoldKey: effectiveScaffoldKey);
       }
       return Failure(exception);
     }
@@ -203,6 +208,7 @@ abstract final class SmartExecuter {
     CancelToken? cancelToken,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     return _executeWithUI<T>(
       request: request,
@@ -221,6 +227,7 @@ abstract final class SmartExecuter {
       cancelToken: cancelToken,
       snackBarErrorBuilder: snackBarErrorBuilder,
       dialogErrorBuilder: dialogErrorBuilder,
+      scaffoldKey: scaffoldKey,
     );
   }
 
@@ -254,6 +261,7 @@ abstract final class SmartExecuter {
     CancelToken? cancelToken,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     return _executeWithUI<T>(
       request: request,
@@ -272,6 +280,7 @@ abstract final class SmartExecuter {
       cancelToken: cancelToken,
       snackBarErrorBuilder: snackBarErrorBuilder,
       dialogErrorBuilder: dialogErrorBuilder,
+      scaffoldKey: scaffoldKey,
     );
   }
 
@@ -309,6 +318,7 @@ abstract final class SmartExecuter {
     void Function(T? value)? listener,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
@@ -328,6 +338,7 @@ abstract final class SmartExecuter {
       listener: listener,
       snackBarErrorBuilder: snackBarErrorBuilder,
       dialogErrorBuilder: dialogErrorBuilder,
+      scaffoldKey: scaffoldKey,
     );
   }
 
@@ -351,6 +362,7 @@ abstract final class SmartExecuter {
     void Function(T? value)? listener,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     return _executeStreamWithUI<T>(
       requestStream: requestStream,
@@ -369,6 +381,7 @@ abstract final class SmartExecuter {
       listener: listener,
       snackBarErrorBuilder: snackBarErrorBuilder,
       dialogErrorBuilder: dialogErrorBuilder,
+      scaffoldKey: scaffoldKey,
     );
   }
 
@@ -391,9 +404,11 @@ abstract final class SmartExecuter {
     CancelToken? cancelToken,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     final config = SmartExecuterConfig.instance;
     final metadata = _createMetadata(options);
+    final effectiveScaffoldKey = scaffoldKey ?? config.scaffoldKey;
 
     // Check connection if required
     final checkConnection =
@@ -411,7 +426,8 @@ abstract final class SmartExecuter {
         if (context.mounted) {
           _showError(context, exception, viewType,
               snackBarErrorBuilder: snackBarErrorBuilder,
-              dialogErrorBuilder: dialogErrorBuilder);
+              dialogErrorBuilder: dialogErrorBuilder,
+              scaffoldKey: effectiveScaffoldKey);
         }
         return null;
       }
@@ -461,6 +477,7 @@ abstract final class SmartExecuter {
         onSessionExpired: onSessionExpired,
         snackBarErrorBuilder: snackBarErrorBuilder,
         dialogErrorBuilder: dialogErrorBuilder,
+        scaffoldKey: effectiveScaffoldKey,
       );
     } catch (e, stackTrace) {
       _logError('Exception', e, stackTrace, metadata);
@@ -477,7 +494,8 @@ abstract final class SmartExecuter {
       if (context.mounted) {
         _showError(context, exception, viewType,
             snackBarErrorBuilder: snackBarErrorBuilder,
-            dialogErrorBuilder: dialogErrorBuilder);
+            dialogErrorBuilder: dialogErrorBuilder,
+            scaffoldKey: effectiveScaffoldKey);
       }
     }
 
@@ -502,9 +520,11 @@ abstract final class SmartExecuter {
     void Function(T? value)? listener,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     final config = SmartExecuterConfig.instance;
     final metadata = _createMetadata(options);
+    final effectiveScaffoldKey = scaffoldKey ?? config.scaffoldKey;
 
     // Check connection if required
     final checkConnection =
@@ -522,7 +542,8 @@ abstract final class SmartExecuter {
         if (context.mounted) {
           _showError(context, exception, viewType,
               snackBarErrorBuilder: snackBarErrorBuilder,
-              dialogErrorBuilder: dialogErrorBuilder);
+              dialogErrorBuilder: dialogErrorBuilder,
+              scaffoldKey: effectiveScaffoldKey);
         }
         return null;
       }
@@ -612,6 +633,7 @@ abstract final class SmartExecuter {
         onSessionExpired: onSessionExpired,
         snackBarErrorBuilder: snackBarErrorBuilder,
         dialogErrorBuilder: dialogErrorBuilder,
+        scaffoldKey: effectiveScaffoldKey,
       );
     } catch (e, stackTrace) {
       _logError('Exception', e, stackTrace, metadata);
@@ -628,7 +650,8 @@ abstract final class SmartExecuter {
       if (context.mounted) {
         _showError(context, exception, viewType,
             snackBarErrorBuilder: snackBarErrorBuilder,
-            dialogErrorBuilder: dialogErrorBuilder);
+            dialogErrorBuilder: dialogErrorBuilder,
+            scaffoldKey: effectiveScaffoldKey);
       }
     } finally {
       await subscription?.cancel();
@@ -652,6 +675,7 @@ abstract final class SmartExecuter {
     VoidAsyncCallback? onSessionExpired,
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) async {
     final config = SmartExecuterConfig.instance;
 
@@ -683,7 +707,8 @@ abstract final class SmartExecuter {
     if (context.mounted) {
       _showError(context, exception, viewType,
           snackBarErrorBuilder: snackBarErrorBuilder,
-          dialogErrorBuilder: dialogErrorBuilder);
+          dialogErrorBuilder: dialogErrorBuilder,
+          scaffoldKey: scaffoldKey);
     }
   }
 
@@ -746,6 +771,7 @@ abstract final class SmartExecuter {
     ErrorViewType viewType, {
     SnackBarErrorBuilder? snackBarErrorBuilder,
     DialogErrorBuilder? dialogErrorBuilder,
+    GlobalKey<ScaffoldState>? scaffoldKey,
   }) {
     final config = SmartExecuterConfig.instance;
 
@@ -754,7 +780,10 @@ abstract final class SmartExecuter {
         final builder = snackBarErrorBuilder ?? config.snackBarErrorBuilder;
         final snackBar = builder?.build(context, exception)
             ?? SmartErrorSnackBar(exception: exception);
-        ScaffoldMessenger.of(context)
+        final messenger = scaffoldKey?.currentContext != null
+            ? ScaffoldMessenger.of(scaffoldKey!.currentContext!)
+            : ScaffoldMessenger.of(context);
+        messenger
           ..hideCurrentSnackBar()
           ..showSnackBar(snackBar);
 
