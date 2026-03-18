@@ -16,12 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `viewType` parameter in `execute()`, `run()`, `inBackground()`, `runStream()`, `inBackgroundStream()` is now optional (`ErrorViewType?`) — if omitted, falls back to `config.defaultViewType`
+
+## [2.2.1] - 2026-03-11
+
+### Changed
+
 - **BREAKING**: `MessageBuilder` typedef changed from `String Function()` to `String Function(BuildContext context)`
   - Message functions now receive the `BuildContext` for proper localization support
   - Migrate: `defaultErrorMessage: () => 'msg'` → `defaultErrorMessage: (_) => 'msg'`
   - Localization example: `noConnectionMessage: (context) => AppLocalizations.of(context)!.noConnection`
   - Config accessors changed from getters to methods: `config.noConnectionMessage` → `config.noConnectionMessage(context)`
-- `viewType` parameter in `execute()`, `run()`, `inBackground()`, `runStream()`, `inBackgroundStream()` is now optional (`ErrorViewType?`) — if omitted, falls back to `config.defaultViewType`
 
 ## [2.2.0] - 2026-03-11
 
