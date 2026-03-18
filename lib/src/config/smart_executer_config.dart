@@ -32,6 +32,33 @@ typedef SessionExpiredDialogBuilder = Widget Function(
 /// ```
 typedef MessageBuilder = String Function(BuildContext context);
 
+/// Builder type for creating custom [SmartException] instances.
+///
+/// Receives the original [error], its [stackTrace], and the operation
+/// [metadata]. Returns a [SmartException] (or `null` to fall back to the
+/// default mapping via [ExceptionMapper]).
+///
+/// Example:
+/// ```dart
+/// SmartExecuterConfig.initialize(
+///   exceptionBuilder: (error, stackTrace, metadata) {
+///     if (error is DioException && error.response?.statusCode == 403) {
+///       return ResponseException(
+///         message: 'Access denied',
+///         statusCode: 403,
+///         metadata: metadata,
+///       );
+///     }
+///     return null; // use default mapping
+///   },
+/// );
+/// ```
+typedef ExceptionBuilder = SmartException? Function(
+  Object error,
+  StackTrace? stackTrace,
+  ExceptionMetadata metadata,
+);
+
 /// Global configuration for SmartExecuter.
 ///
 /// Configure SmartExecuter once at app startup:
@@ -89,6 +116,7 @@ final class SmartExecuterConfig {
     bool checkConnectionByDefault = false,
     ErrorViewType defaultViewType = ErrorViewType.snackBar,
     GlobalKey<ScaffoldState>? scaffoldKey,
+    ExceptionBuilder? exceptionBuilder,
   }) {
     final config = instance;
     config._loadingDialogBuilder = loadingDialogBuilder;
@@ -106,6 +134,7 @@ final class SmartExecuterConfig {
     config._checkConnectionByDefault = checkConnectionByDefault;
     config._defaultViewType = defaultViewType;
     config._scaffoldKey = scaffoldKey;
+    config._exceptionBuilder = exceptionBuilder;
   }
 
   /// Resets the configuration to defaults.
@@ -129,6 +158,7 @@ final class SmartExecuterConfig {
   bool _checkConnectionByDefault = false;
   ErrorViewType _defaultViewType = ErrorViewType.snackBar;
   GlobalKey<ScaffoldState>? _scaffoldKey;
+  ExceptionBuilder? _exceptionBuilder;
 
   /// Builder for creating loading dialogs.
   LoadingDialogBuilder? get loadingDialogBuilder => _loadingDialogBuilder;
@@ -200,6 +230,13 @@ final class SmartExecuterConfig {
   /// instead of the caller's [BuildContext]. This is useful when the
   /// calling widget's context is not under a [ScaffoldMessenger].
   GlobalKey<ScaffoldState>? get scaffoldKey => _scaffoldKey;
+
+  /// Custom builder for creating [SmartException] instances.
+  ///
+  /// When provided, this builder is called first for every caught error.
+  /// If it returns a [SmartException], that instance is used directly.
+  /// If it returns `null`, the default [ExceptionMapper] is used instead.
+  ExceptionBuilder? get exceptionBuilder => _exceptionBuilder;
 }
 
 /// Options for individual SmartExecuter operations.

@@ -80,6 +80,25 @@ abstract final class SmartExecuter {
     );
   }
 
+  /// Builds a [SmartException] from the given [error].
+  ///
+  /// Delegates to [SmartExecuterConfig.exceptionBuilder] first; if it
+  /// returns `null` (or is not set), falls back to [ExceptionMapper].
+  static SmartException _buildException(
+    Object error,
+    StackTrace? stackTrace,
+    ExceptionMetadata metadata,
+  ) {
+    final custom = SmartExecuterConfig.instance.exceptionBuilder
+        ?.call(error, stackTrace, metadata);
+    if (custom != null) return custom;
+
+    if (error is DioException) {
+      return ExceptionMapper.fromDioException(error, metadata);
+    }
+    return ExceptionMapper.fromException(error, stackTrace, metadata);
+  }
+
   /// Executes an async operation and returns a [Result].
   ///
   /// This method provides a clean way to handle success and failure cases
@@ -149,7 +168,7 @@ abstract final class SmartExecuter {
       final result = await request();
       return Success(result);
     } on DioException catch (e, stackTrace) {
-      final exception = ExceptionMapper.fromDioException(e, exceptionMetadata);
+      final exception = _buildException(e, e.stackTrace, exceptionMetadata);
       _logError('DioException', e, stackTrace, exceptionMetadata);
       await config.globalErrorHandler?.call(exception);
       if (context != null && context.mounted) {
@@ -160,8 +179,7 @@ abstract final class SmartExecuter {
       }
       return Failure(exception);
     } catch (e, stackTrace) {
-      final exception =
-          ExceptionMapper.fromException(e, stackTrace, exceptionMetadata);
+      final exception = _buildException(e, stackTrace, exceptionMetadata);
       _logError('Exception', e, stackTrace, exceptionMetadata);
       await config.globalErrorHandler?.call(exception);
       if (context != null && context.mounted) {
@@ -462,7 +480,7 @@ abstract final class SmartExecuter {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromDioException(e, metadata);
+      final exception = _buildException(e, e.stackTrace, metadata);
       await _handleDioError(
         context: context,
         viewType: viewType,
@@ -487,7 +505,7 @@ abstract final class SmartExecuter {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromException(e, stackTrace, metadata);
+      final exception = _buildException(e, stackTrace, metadata);
       await onError?.call(exception);
       await config.globalErrorHandler?.call(exception);
 
@@ -618,7 +636,7 @@ abstract final class SmartExecuter {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromDioException(e, metadata);
+      final exception = _buildException(e, e.stackTrace, metadata);
       await _handleDioError(
         context: context,
         viewType: viewType,
@@ -643,7 +661,7 @@ abstract final class SmartExecuter {
         Navigator.of(context).pop();
       }
 
-      final exception = ExceptionMapper.fromException(e, stackTrace, metadata);
+      final exception = _buildException(e, stackTrace, metadata);
       await onError?.call(exception);
       await config.globalErrorHandler?.call(exception);
 

@@ -467,7 +467,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 8),
-          const Text('v2.3.0',
+          const Text('v2.4.0',
               style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,

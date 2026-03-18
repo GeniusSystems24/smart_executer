@@ -31,7 +31,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^2.3.0
+  smart_executer: ^2.4.0
 ```
 
 Then run:
