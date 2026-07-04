@@ -7,8 +7,6 @@ library;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-
-
 /// Identifies the type of a [SmartException] without pattern matching.
 ///
 /// Each [SmartException] subclass has a corresponding [SmartExceptionType]
@@ -34,8 +32,7 @@ enum SmartExceptionType {
   connection(color: Color(0xFFFF9800), icon: Icons.wifi_off_rounded),
 
   /// Corresponds to [ConnectionTimeoutException].
-  connectionTimeout(
-      color: Color(0xFFFF5722), icon: Icons.timer_off_rounded),
+  connectionTimeout(color: Color(0xFFFF5722), icon: Icons.timer_off_rounded),
 
   /// Corresponds to [SendTimeoutException].
   sendTimeout(color: Color(0xFFFF5722), icon: Icons.upload_rounded),
@@ -50,8 +47,7 @@ enum SmartExceptionType {
   response(color: Color(0xFFF44336), icon: Icons.cloud_off_rounded),
 
   /// Corresponds to [SessionExpiredException].
-  sessionExpired(
-      color: Color(0xFF1976D2), icon: Icons.lock_outline_rounded),
+  sessionExpired(color: Color(0xFF1976D2), icon: Icons.lock_outline_rounded),
 
   /// Corresponds to [UnknownException].
   unknown(color: Color(0xFFF44336), icon: Icons.error_outline_rounded);
@@ -477,8 +473,7 @@ abstract final class ExceptionMapper {
           e.stackTrace,
           enrichedMetadata,
         );
-      case DioExceptionType.badCertificate:
-      case DioExceptionType.unknown:
+      default:
         return UnknownException(
           e.message ?? 'Unknown error',
           e,

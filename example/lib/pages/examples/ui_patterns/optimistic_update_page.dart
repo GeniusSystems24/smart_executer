@@ -64,7 +64,6 @@ class _OptimisticUpdatePageState extends State<OptimisticUpdatePage> {
   }
 
   Future<void> _deleteItem(int index) async {
-    final item = _items[index];
     final previousItems = List<_TodoItem>.from(_items);
 
     // OPTIMISTIC UPDATE: Remove immediately
