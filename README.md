@@ -25,13 +25,26 @@ A powerful Flutter package for executing async operations with built-in error ha
 - **Customizable UI** - Fully customizable dialogs, snack bars, and error messages
 - **Global Configuration** - Configure once, use everywhere
 
+## Architecture
+
+The public API remains static and backward compatible, while the implementation
+is organized using Clean Architecture, SOLID, and MVC:
+
+- framework-independent Result and exception models in the domain layer
+- execution use cases and small contracts in the application layer
+- Dio, connectivity, and logging adapters in the infrastructure layer
+- an MVC controller and Flutter view boundary in the presentation layer
+- a single composition root that injects concrete dependencies
+
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the dependency rules and file map.
+
 ## Installation
 
 Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^2.4.0
+  smart_executer: ^2.4.2
 ```
 
 Then run:

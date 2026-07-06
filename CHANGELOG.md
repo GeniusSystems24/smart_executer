@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2] - 2026-07-06
+
+### Changed
+
+- Refactored internals using Clean Architecture, SOLID, and MVC without changing the public usage API.
+- Converted `SmartExecuter` into a backward-compatible facade over an injected controller and application use case.
+- Moved framework-independent Result and exception models into the domain layer.
+- Isolated Dio, connectivity_plus, and logger integrations in infrastructure adapters.
+- Split status-card implementations into smaller presentation files while preserving `status_cards.dart`.
+- Applied configured operation timeouts only when explicitly set globally or per operation.
+- Reorganized the example app by feature and introduced MVC controllers, framework-independent demo models, and infrastructure adapters while retaining legacy example import paths.
+
+### Added
+
+- Architecture documentation and compatibility-focused tests.
+
 ## [2.4.0] - 2026-03-18
 
 ### Added

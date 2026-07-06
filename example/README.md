@@ -1,87 +1,63 @@
 # Smart Executer Example
 
-This example demonstrates how to use the Smart Executer package.
+A feature-first Flutter example demonstrating `smart_executer` with Clean
+Architecture, SOLID boundaries, and MVC controllers.
 
-## Getting Started
+## Run
 
-1. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
+```bash
+flutter pub get
+flutter run
+```
 
-2. Run the app:
-   ```bash
-   flutter run
-   ```
+## Architecture
 
-## Features Demonstrated
+- `app/`: bootstrap, routing, theme, and dependency composition.
+- `features/`: each example or scenario owns its models, controller, and view.
+- `shared/application`: technology-independent contracts.
+- `shared/infrastructure`: Dio and other concrete adapters.
+- `shared/presentation`: reusable Flutter widgets.
+- `core/` and `pages/`: backward-compatible exports for the previous paths.
 
-- **Basic Usage**: Run operations with loading dialog or in background
-- **Result Pattern**: Type-safe success/failure handling
-- **Error Handling**: Simulate various error scenarios
-- **Error Views**: Display errors as SnackBars or Dialogs with `ErrorViewType`
-- **Callbacks**: Use callbacks for success and error handling
-- **Connectivity**: Check network status and conditionally run requests
-- **Snack Bars**: Show success, error, and custom snack bars
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the dependency rules and MVC map.
 
-## Code Highlights
+## Features demonstrated
 
-### Initialize Configuration
+- Basic `run`, `execute`, and background operations.
+- Type-safe `Success` and `Failure` handling.
+- Dialog and SnackBar error views.
+- Connectivity checks and offline behavior.
+- Pagination, forms, product cards, and an integrated task dashboard.
+- Sequential, parallel, debounce, throttle, and retry patterns.
+- Pull-to-refresh, optimistic updates, and skeleton loading.
+- Custom error and exception builders.
+
+## Configuration
+
+The application-wide setup is isolated in `lib/app/bootstrap.dart`:
 
 ```dart
 SmartExecuterConfig.initialize(
   enableLogging: kDebugMode,
-  defaultErrorMessage: 'Something went wrong. Please try again.',
+  defaultErrorMessage: (_) => 'Something went wrong. Please try again.',
+  defaultViewType: ErrorViewType.snackBar,
 );
 ```
 
-### Run with Loading Dialog
+## Controller example
+
+Views depend on a controller, and controllers depend on the `DemoHttpClient`
+contract rather than Dio:
 
 ```dart
-final result = await SmartExecuter.run(
-  request: () => dio.get('/posts/1'),
-  context: context,
+final result = await SmartExecuter.execute<DemoHttpResponse<dynamic>>(
+  () => client.get('/posts/1'),
+);
+
+result.fold(
+  onSuccess: (response) => updateView(response.data),
+  onFailure: (exception) => showFailure(exception.message),
 );
 ```
 
-### Error View Types
-
-```dart
-// Show errors as a dialog instead of snackbar
-await SmartExecuter.run(
-  request: () => dio.get('/posts/1'),
-  context: context,
-  viewType: ErrorViewType.dialog,
-);
-```
-
-### Use Result Pattern
-
-```dart
-final result = await SmartExecuter.execute(
-  () => dio.get('/posts/1'),
-);
-
-switch (result) {
-  case Success(:final data):
-    print('Got: ${data.data}');
-  case Failure(:final exception):
-    print('Error: ${exception.message}');
-    print('Type: ${exception.exceptionType}');
-}
-```
-
-### With Callbacks
-
-```dart
-await SmartExecuter.run(
-  request: () => dio.get('/posts/1'),
-  context: context,
-  onSuccess: (response) async {
-    print('Success!');
-  },
-  onError: (exception) async {
-    print('Error: ${exception.message}');
-  },
-);
-```
+The concrete `DioDemoHttpClient` is created only by `AppDependencies`.

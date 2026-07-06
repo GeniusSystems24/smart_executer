@@ -216,6 +216,13 @@ final class SmartExecuterConfig {
   Duration get defaultTimeout =>
       _defaultTimeout ?? const Duration(seconds: 30);
 
+  /// Resolves the timeout for an operation.
+  ///
+  /// A per-operation timeout wins over the configured global timeout. When
+  /// neither is set, no timeout is applied, preserving pre-2.4 behavior.
+  Duration? resolveTimeout(Duration? operationTimeout) =>
+      operationTimeout ?? _defaultTimeout;
+
   /// Whether to check connection before requests by default.
   bool get checkConnectionByDefault => _checkConnectionByDefault;
 

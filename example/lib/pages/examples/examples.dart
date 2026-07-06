@@ -1,24 +1,2 @@
-// Execution Patterns
-export 'execution_patterns/sequential_execution_page.dart';
-export 'execution_patterns/parallel_execution_page.dart';
-export 'execution_patterns/debounce_throttle_page.dart';
-
-// Retry Patterns
-export 'retry_patterns/auto_retry_page.dart';
-
-// UI Patterns
-export 'ui_patterns/pull_to_refresh_page.dart';
-export 'ui_patterns/optimistic_update_page.dart';
-export 'ui_patterns/skeleton_loading_page.dart';
-
-// Connectivity
-export 'connectivity/offline_mode_page.dart';
-
-// Data Management
-export 'data_management/crud_operations_page.dart';
-
-// Error Builders
-export 'error_builders/snackbar_error_builder_page.dart';
-export 'error_builders/dialog_error_builder_page.dart';
-export 'error_builders/scaffold_key_page.dart';
-export 'error_builders/exception_builder_page.dart';
+// Compatibility export. New code should import the feature-first path.
+export 'package:smart_executer_example/features/examples/examples.dart';
