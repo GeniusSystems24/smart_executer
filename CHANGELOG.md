@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2] - 2026-07-06
+
+### Changed
+
+- Refactored internals using Clean Architecture, SOLID, and MVC without changing the public usage API.
+- Converted `SmartExecuter` into a backward-compatible facade over an injected controller and application use case.
+- Moved framework-independent Result and exception models into the domain layer.
+- Isolated Dio, connectivity_plus, and logger integrations in infrastructure adapters.
+- Split status-card implementations into smaller presentation files while preserving `status_cards.dart`.
+- Applied configured operation timeouts only when explicitly set globally or per operation.
+- Reorganized the example app by feature and introduced MVC controllers, framework-independent demo models, and infrastructure adapters while retaining legacy example import paths.
+
+### Added
+
+- Architecture documentation and compatibility-focused tests.
+
+## [2.4.0] - 2026-03-18
+
+### Added
+
+- **`exceptionBuilder`** — optional callback in `SmartExecuterConfig.initialize` for custom `SmartException` creation
+  - Receives the original error (`Object`), `StackTrace?`, and `ExceptionMetadata`
+  - Returns a `SmartException` to override default mapping, or `null` to fall back to `ExceptionMapper`
+  - Applied globally to all operations (`run`, `inBackground`, `execute`, `runStream`, `inBackgroundStream`)
+
+## [2.3.0] - 2026-03-18
+
+### Added
+
+- **`scaffoldKey`** — optional `GlobalKey<ScaffoldState>` for controlling where `SnackBar`s are displayed
+  - Set globally via `SmartExecuterConfig.initialize(scaffoldKey: ...)`
+  - Override per-operation in `run`, `inBackground`, `runStream`, `inBackgroundStream`, and `execute`
+  - Per-operation value takes priority over the global config
+  - Useful when the calling context is not under a `ScaffoldMessenger`
+
+## [2.2.2] - 2026-03-18
+
+### Added
+
+- **`defaultViewType`** in `SmartExecuterConfig.initialize()` — set the default `ErrorViewType` for all operations globally
+  - Defaults to `ErrorViewType.snackBar`
+  - Per-operation `viewType` overrides the global default
+  - Resolution: per-operation `viewType` → `config.defaultViewType`
+
+### Changed
+
+- `viewType` parameter in `execute()`, `run()`, `inBackground()`, `runStream()`, `inBackgroundStream()` is now optional (`ErrorViewType?`) — if omitted, falls back to `config.defaultViewType`
+
+## [2.2.1] - 2026-03-11
+
+### Changed
+
+- **BREAKING**: `MessageBuilder` typedef changed from `String Function()` to `String Function(BuildContext context)`
+  - Message functions now receive the `BuildContext` for proper localization support
+  - Migrate: `defaultErrorMessage: () => 'msg'` → `defaultErrorMessage: (_) => 'msg'`
+  - Localization example: `noConnectionMessage: (context) => AppLocalizations.of(context)!.noConnection`
+  - Config accessors changed from getters to methods: `config.noConnectionMessage` → `config.noConnectionMessage(context)`
+
 ## [2.2.0] - 2026-03-11
 
 ### Changed

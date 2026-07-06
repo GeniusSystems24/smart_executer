@@ -11,7 +11,7 @@
 /// void main() {
 ///   SmartExecuterConfig.initialize(
 ///     enableLogging: true,
-///     defaultErrorMessage: 'Something went wrong',
+///     defaultErrorMessage: (_) => 'Something went wrong',
 ///   );
 ///   runApp(MyApp());
 /// }
@@ -55,7 +55,7 @@
 /// - **Customizable UI**: Fully customizable dialogs and snack bars
 ///
 /// See the [README](https://pub.dev/packages/smart_executer) for more details.
-library smart_executer;
+library;
 
 // Core exports
 export 'src/core/executer.dart' show SmartExecuter;
@@ -67,10 +67,10 @@ export 'src/config/smart_executer_config.dart';
 export 'src/config/error_builders.dart';
 
 // Widget exports
-export 'src/widgets/loading_dialog.dart';
-export 'src/widgets/error_snack_bar.dart';
-export 'src/widgets/error_dialog.dart';
-export 'src/widgets/status_cards.dart';
+export 'src/presentation/widgets/loading_dialog.dart';
+export 'src/presentation/widgets/error_snack_bar.dart';
+export 'src/presentation/widgets/error_dialog.dart';
+export 'src/presentation/widgets/status_cards.dart';
 
 // Utility exports
 export 'src/utils/connectivity_checker.dart';

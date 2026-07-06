@@ -23,14 +23,41 @@ typedef SessionExpiredDialogBuilder = Widget Function(
   VoidCallback onConfirm,
 );
 
-/// A function that returns a [String] at call time.
+/// A function that returns a [String] given a [BuildContext].
 ///
 /// Used for message fields in [SmartExecuterConfig] so that messages can be
 /// resolved dynamically — for example, reading from a localization delegate:
 /// ```dart
-/// defaultErrorMessage: () => AppLocalizations.of(context)!.errorMessage,
+/// defaultErrorMessage: (context) => AppLocalizations.of(context)!.errorMessage,
 /// ```
-typedef MessageBuilder = String Function();
+typedef MessageBuilder = String Function(BuildContext context);
+
+/// Builder type for creating custom [SmartException] instances.
+///
+/// Receives the original [error], its [stackTrace], and the operation
+/// [metadata]. Returns a [SmartException] (or `null` to fall back to the
+/// default mapping via [ExceptionMapper]).
+///
+/// Example:
+/// ```dart
+/// SmartExecuterConfig.initialize(
+///   exceptionBuilder: (error, stackTrace, metadata) {
+///     if (error is DioException && error.response?.statusCode == 403) {
+///       return ResponseException(
+///         message: 'Access denied',
+///         statusCode: 403,
+///         metadata: metadata,
+///       );
+///     }
+///     return null; // use default mapping
+///   },
+/// );
+/// ```
+typedef ExceptionBuilder = SmartException? Function(
+  Object error,
+  StackTrace? stackTrace,
+  ExceptionMetadata metadata,
+);
 
 /// Global configuration for SmartExecuter.
 ///
@@ -51,9 +78,9 @@ typedef MessageBuilder = String Function();
 ///       ),
 ///     ),
 ///     // Static string
-///     defaultErrorMessage: () => 'Something went wrong',
+///     defaultErrorMessage: (_) => 'Something went wrong',
 ///     // Or dynamic / localized string
-///     noConnectionMessage: () => AppLocalizations.of(ctx)!.noConnection,
+///     noConnectionMessage: (context) => AppLocalizations.of(context)!.noConnection,
 ///     enableLogging: true,
 ///   );
 ///   runApp(MyApp());
@@ -87,6 +114,9 @@ final class SmartExecuterConfig {
     bool enableLogging = false,
     Duration? defaultTimeout,
     bool checkConnectionByDefault = false,
+    ErrorViewType defaultViewType = ErrorViewType.snackBar,
+    GlobalKey<ScaffoldState>? scaffoldKey,
+    ExceptionBuilder? exceptionBuilder,
   }) {
     final config = instance;
     config._loadingDialogBuilder = loadingDialogBuilder;
@@ -102,6 +132,9 @@ final class SmartExecuterConfig {
     config._enableLogging = enableLogging;
     config._defaultTimeout = defaultTimeout;
     config._checkConnectionByDefault = checkConnectionByDefault;
+    config._defaultViewType = defaultViewType;
+    config._scaffoldKey = scaffoldKey;
+    config._exceptionBuilder = exceptionBuilder;
   }
 
   /// Resets the configuration to defaults.
@@ -123,6 +156,9 @@ final class SmartExecuterConfig {
   bool _enableLogging = false;
   Duration? _defaultTimeout;
   bool _checkConnectionByDefault = false;
+  ErrorViewType _defaultViewType = ErrorViewType.snackBar;
+  GlobalKey<ScaffoldState>? _scaffoldKey;
+  ExceptionBuilder? _exceptionBuilder;
 
   /// Builder for creating loading dialogs.
   LoadingDialogBuilder? get loadingDialogBuilder => _loadingDialogBuilder;
@@ -149,28 +185,29 @@ final class SmartExecuterConfig {
 
   /// Default error message when no specific message is available.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get defaultErrorMessage =>
-      _defaultErrorMessage?.call() ?? 'An error occurred. Please try again.';
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String defaultErrorMessage(BuildContext context) =>
+      _defaultErrorMessage?.call(context) ??
+      'An error occurred. Please try again.';
 
   /// Message shown when there is no internet connection.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get noConnectionMessage =>
-      _noConnectionMessage?.call() ?? 'No internet connection';
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String noConnectionMessage(BuildContext context) =>
+      _noConnectionMessage?.call(context) ?? 'No internet connection';
 
   /// Message shown when the session has expired.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get sessionExpiredMessage =>
-      _sessionExpiredMessage?.call() ??
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String sessionExpiredMessage(BuildContext context) =>
+      _sessionExpiredMessage?.call(context) ??
       'Your session has expired. Please sign in again.';
 
   /// Title for the session expired dialog.
   ///
-  /// Calls the [MessageBuilder] function each time to allow dynamic/localized strings.
-  String get sessionExpiredTitle =>
-      _sessionExpiredTitle?.call() ?? 'Session Expired';
+  /// Calls the [MessageBuilder] with [context] to allow dynamic/localized strings.
+  String sessionExpiredTitle(BuildContext context) =>
+      _sessionExpiredTitle?.call(context) ?? 'Session Expired';
 
   /// Whether to enable logging for debugging.
   bool get enableLogging => _enableLogging;
@@ -179,8 +216,34 @@ final class SmartExecuterConfig {
   Duration get defaultTimeout =>
       _defaultTimeout ?? const Duration(seconds: 30);
 
+  /// Resolves the timeout for an operation.
+  ///
+  /// A per-operation timeout wins over the configured global timeout. When
+  /// neither is set, no timeout is applied, preserving pre-2.4 behavior.
+  Duration? resolveTimeout(Duration? operationTimeout) =>
+      operationTimeout ?? _defaultTimeout;
+
   /// Whether to check connection before requests by default.
   bool get checkConnectionByDefault => _checkConnectionByDefault;
+
+  /// Default [ErrorViewType] used when no `viewType` is specified per-operation.
+  ///
+  /// Defaults to [ErrorViewType.snackBar].
+  ErrorViewType get defaultViewType => _defaultViewType;
+
+  /// Global [ScaffoldState] key for displaying [SnackBar]s.
+  ///
+  /// When provided, [ScaffoldMessenger] will use this key's context
+  /// instead of the caller's [BuildContext]. This is useful when the
+  /// calling widget's context is not under a [ScaffoldMessenger].
+  GlobalKey<ScaffoldState>? get scaffoldKey => _scaffoldKey;
+
+  /// Custom builder for creating [SmartException] instances.
+  ///
+  /// When provided, this builder is called first for every caught error.
+  /// If it returns a [SmartException], that instance is used directly.
+  /// If it returns `null`, the default [ExceptionMapper] is used instead.
+  ExceptionBuilder? get exceptionBuilder => _exceptionBuilder;
 }
 
 /// Options for individual SmartExecuter operations.

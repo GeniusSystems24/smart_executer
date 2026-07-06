@@ -523,7 +523,11 @@ packages:
       path: ".."
       relative: true
     source: path
+<<<<<<< HEAD
     version: "2.2.0"
+=======
+    version: "2.4.2"
+>>>>>>> v2.4.2
   smart_pagination:
     dependency: "direct main"
     description:

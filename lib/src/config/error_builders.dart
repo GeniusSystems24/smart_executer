@@ -6,8 +6,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:smart_executer/src/core/exceptions.dart';
-import 'package:smart_executer/src/widgets/error_dialog.dart';
-import 'package:smart_executer/src/widgets/error_snack_bar.dart';
+import 'package:smart_executer/src/presentation/widgets/error_dialog.dart';
+import 'package:smart_executer/src/presentation/widgets/error_snack_bar.dart';
 
 /// Determines how errors are displayed to the user.
 enum ErrorViewType {

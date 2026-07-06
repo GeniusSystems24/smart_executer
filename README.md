@@ -25,13 +25,26 @@ A powerful Flutter package for executing async operations with built-in error ha
 - **Customizable UI** - Fully customizable dialogs, snack bars, and error messages
 - **Global Configuration** - Configure once, use everywhere
 
+## Architecture
+
+The public API remains static and backward compatible, while the implementation
+is organized using Clean Architecture, SOLID, and MVC:
+
+- framework-independent Result and exception models in the domain layer
+- execution use cases and small contracts in the application layer
+- Dio, connectivity, and logging adapters in the infrastructure layer
+- an MVC controller and Flutter view boundary in the presentation layer
+- a single composition root that injects concrete dependencies
+
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the dependency rules and file map.
+
 ## Installation
 
 Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  smart_executer: ^2.2.0
+  smart_executer: ^2.4.2
 ```
 
 Then run:
@@ -50,8 +63,8 @@ Configure SmartExecuter globally in your `main.dart`:
 void main() {
   SmartExecuterConfig.initialize(
     enableLogging: true,
-    defaultErrorMessage: () => 'Something went wrong. Please try again.',
-    noConnectionMessage: () => 'No internet connection',
+    defaultErrorMessage: (_) => 'Something went wrong. Please try again.',
+    noConnectionMessage: (_) => 'No internet connection',
   );
   runApp(const MyApp());
 }
@@ -295,6 +308,80 @@ await SmartExecuter.run(
 
 Resolution order: **per-operation builder → global config builder → package default**.
 
+### Scaffold Key
+
+By default, `ScaffoldMessenger.of(context)` is used to show SnackBars. If the calling context is not under a `ScaffoldMessenger`, you can provide a `GlobalKey<ScaffoldState>` to control where SnackBars are displayed.
+
+**Global configuration:**
+
+```dart
+final scaffoldKey = GlobalKey<ScaffoldState>();
+
+SmartExecuterConfig.initialize(
+  scaffoldKey: scaffoldKey,
+);
+```
+
+**Per-operation override:**
+
+```dart
+final pageScaffoldKey = GlobalKey<ScaffoldState>();
+
+await SmartExecuter.run(
+  request: () => apiService.getUser(id),
+  context: context,
+  scaffoldKey: pageScaffoldKey,
+);
+```
+
+Resolution order: **per-operation scaffoldKey → global config scaffoldKey → `ScaffoldMessenger.of(context)`**.
+
+### Custom Exception Builder
+
+Override how errors are mapped to `SmartException` instances. The builder receives the original error, stack trace, and operation metadata. Return a `SmartException` to use it, or `null` to fall back to the default `ExceptionMapper`.
+
+```dart
+SmartExecuterConfig.initialize(
+  exceptionBuilder: (error, stackTrace, metadata) {
+    // Custom mapping for specific status codes
+    if (error is DioException) {
+      final statusCode = error.response?.statusCode;
+      final responseData = error.response?.data;
+
+      if (statusCode == 403) {
+        return ResponseException(
+          message: 'You do not have permission to perform this action',
+          statusCode: 403,
+          responseData: responseData,
+          cause: error,
+          stackTrace: stackTrace,
+          metadata: metadata,
+        );
+      }
+
+      // Parse server error messages
+      if (statusCode != null && statusCode >= 400) {
+        final serverMessage = responseData is Map
+            ? responseData['message'] as String?
+            : null;
+        if (serverMessage != null) {
+          return ResponseException(
+            message: serverMessage,
+            statusCode: statusCode,
+            responseData: responseData,
+            cause: error,
+            stackTrace: stackTrace,
+            metadata: metadata,
+          );
+        }
+      }
+    }
+
+    return null; // use default ExceptionMapper
+  },
+);
+```
+
 ### Stream Operations with Progress
 
 ```dart
@@ -374,13 +461,31 @@ SmartExecuterConfig.initialize(
     navigatorKey.currentState?.pushReplacementNamed('/login');
   },
 
-  // Messages — use String Function() for dynamic/localized strings
-  defaultErrorMessage: () => 'An error occurred',
-  noConnectionMessage: () => 'No internet connection',
-  sessionExpiredMessage: () => 'Your session has expired',
-  sessionExpiredTitle: () => 'Session Expired',
-  // Or with localization (resolved at error time):
-  // noConnectionMessage: () => AppLocalizations.of(navigatorKey.currentContext!)!.noConnection,
+  // Messages — use String Function(BuildContext) for dynamic/localized strings
+  defaultErrorMessage: (_) => 'An error occurred',
+  noConnectionMessage: (_) => 'No internet connection',
+  sessionExpiredMessage: (_) => 'Your session has expired',
+  sessionExpiredTitle: (_) => 'Session Expired',
+  // Or with localization (context provided at error time):
+  // noConnectionMessage: (context) => AppLocalizations.of(context)!.noConnection,
+
+  // Default error view type for all operations
+  defaultViewType: ErrorViewType.snackBar,
+
+  // Scaffold key for SnackBar display control
+  scaffoldKey: scaffoldKey,
+
+  // Custom exception builder
+  exceptionBuilder: (error, stackTrace, metadata) {
+    if (error is DioException && error.response?.statusCode == 403) {
+      return ResponseException(
+        message: 'Access denied',
+        statusCode: 403,
+        metadata: metadata,
+      );
+    }
+    return null; // fall back to default mapping
+  },
 
   // Connection checking
   checkConnectionByDefault: false,
